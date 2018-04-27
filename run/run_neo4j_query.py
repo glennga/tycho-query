@@ -4,7 +4,7 @@ Usage: python3 run_neo4j_query.py [uri] [username] [password] [cql-file]
 """
 
 from neo4j.v1 import GraphDatabase
-from numpy import average
+from numpy import average, std
 from timeit import timeit
 from sys import argv
 
@@ -28,6 +28,9 @@ if __name__ == '__main__':
     for i in range(15):
         r_t.append(timeit(stmt=lambda: [session.run(q) for q in queries], number=1))
         print('Running Time [{}]: {}s'.format(i, r_t[-1]))
-    print('Average Running Time: {}s'.format(average(r_t)))
+
+    # Print some statistics of our times.
+    print('Running Time [mu]: {}s'.format(average(r_t)))
+    print('Running Time [sigma]: {}s'.format(std(r_t)))
 
     session.close(), driver.close()
