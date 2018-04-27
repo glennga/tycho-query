@@ -58,38 +58,37 @@ if __name__ == '__main__':
                     'e_BTmag': float(entry[117:122]),
                 }
 
-                if node['BTmag'] < 9.0:
-                    session.run('CREATE (s:Star {' +
-                                'TYC1: {}, '.format(node['TYC1']) +
-                                'TYC2: {}, '.format(node['TYC2']) +
-                                'TYC3: {}, '.format(node['TYC3']) +
-                                'RAmdeg: {}, '.format(node['RAmdeg']) +
-                                'DEmdeg: {}, '.format(node['DEmdeg']) +
-                                'pmRA: {}, '.format(node['pmRA']) +
-                                'pmDE: {}, '.format(node['pmDE']) +
-                                'e_RAmdeg: {}, '.format(node['e_RAmdeg']) +
-                                'e_DEmdeg: {}, '.format(node['e_DEmdeg']) +
-                                'e_pmRA: {}, '.format(node['e_pmRA']) +
-                                'e_pmDE: {}, '.format(node['e_pmDE']) +
-                                'EpRAm: {}, '.format(node['EpRAm']) +
-                                'EpDEm: {}, '.format(node['EpDEm']) +
-                                'BTmag: {}, '.format(node['BTmag']) +
-                                'e_BTmag: {}'.format(node['e_BTmag']) +
-                                '})')
-                    session.run('MERGE (a:Region { ' +
-                                'TYC1: {}'.format(node['TYC1']) +
-                                '})')
-                    session.run('MATCH (s:Star), (a:Region) WHERE ' +
-                                's.TYC1 = {} AND '.format(node['TYC1']) +
-                                's.TYC2 = {} AND '.format(node['TYC2']) +
-                                's.TYC3 = {} AND '.format(node['TYC3']) +
-                                'a.TYC1 = {} '.format(node['TYC1']) +
-                                'CREATE (a)-[:CONTAINS]->(s)')
-                    session.run('MATCH (a:Region), (b:Region) WHERE ' +
-                                'a.TYC1 = {} AND '.format(node['TYC1']) +
-                                'b.TYC1 = {} '.format(previous_region) +
-                                'CREATE (a)-[:NEARBY]->(b)')
-                    previous_region = node['TYC1']
+                session.run('CREATE (s:Star {' +
+                            'TYC1: {}, '.format(node['TYC1']) +
+                            'TYC2: {}, '.format(node['TYC2']) +
+                            'TYC3: {}, '.format(node['TYC3']) +
+                            'RAmdeg: {}, '.format(node['RAmdeg']) +
+                            'DEmdeg: {}, '.format(node['DEmdeg']) +
+                            'pmRA: {}, '.format(node['pmRA']) +
+                            'pmDE: {}, '.format(node['pmDE']) +
+                            'e_RAmdeg: {}, '.format(node['e_RAmdeg']) +
+                            'e_DEmdeg: {}, '.format(node['e_DEmdeg']) +
+                            'e_pmRA: {}, '.format(node['e_pmRA']) +
+                            'e_pmDE: {}, '.format(node['e_pmDE']) +
+                            'EpRAm: {}, '.format(node['EpRAm']) +
+                            'EpDEm: {}, '.format(node['EpDEm']) +
+                            'BTmag: {}, '.format(node['BTmag']) +
+                            'e_BTmag: {}'.format(node['e_BTmag']) +
+                            '})')
+                session.run('MERGE (a:Region { ' +
+                            'TYC1: {}'.format(node['TYC1']) +
+                            '})')
+                session.run('MATCH (s:Star), (a:Region) WHERE ' +
+                            's.TYC1 = {} AND '.format(node['TYC1']) +
+                            's.TYC2 = {} AND '.format(node['TYC2']) +
+                            's.TYC3 = {} AND '.format(node['TYC3']) +
+                            'a.TYC1 = {} '.format(node['TYC1']) +
+                            'CREATE (a)-[:CONTAINS]->(s)')
+                # session.run('MATCH (a:Region), (b:Region) WHERE ' +
+                #             'a.TYC1 = {} AND '.format(node['TYC1']) +
+                #             'b.TYC1 = {} '.format(previous_region) +
+                #             'CREATE (a)-[:NEARBY]->(b)')
+                previous_region = node['TYC1']
 
             except ValueError as e:
                 pass

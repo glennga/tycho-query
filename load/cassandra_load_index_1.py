@@ -8,7 +8,6 @@
 
 Usage: python3 cassandra_load_index.py [uri] [index]
 """
-from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster
 from sys import argv
 
@@ -41,7 +40,7 @@ if __name__ == '__main__':
             DEmin float,
             DEmax float,
             InRegion set<frozen <list<int>>>,
-            PRIMARY KEY ((TYC1), RAmin, RAmax, DEmin, DEmax)
+            PRIMARY KEY (TYC1)
         ) """)
 
     # Our prepared statement. Execute for each region.

@@ -20,6 +20,16 @@ Usage: python3 cassandra_load.py [uri] [catalog]
 from cassandra.cluster import Cluster
 from sys import argv
 
+def hash_c(v):
+    """ Round some value v to the closest multiple of 2.5, and return the appropriate multiplier of 2.5 to get this
+    number.
+
+    :param v: Celestial value to hash (alpha or delta).
+    :return: The new, hashed value.
+    """
+    from math import ceil
+    return ceil((v + (2.5 - v) % v if v != 0 else 0) / 2.5)
+
 
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
@@ -93,7 +103,8 @@ if __name__ == '__main__':
                                     '{}, '.format(node['TYC2']) +
                                     '{}'.format(node['TYC3']) +
                                     ']} WHERE ' +
-                                    'TYC1 = {}'.format(node['TYC1']))
+                                    'HRAmin = {} AND '.format(hash_c(node['RAmdeg'])) +
+                                    'HDEmin = {}'.format(hash_c(node['DEmdeg'])))
 
             except ValueError as e:g
                 pass

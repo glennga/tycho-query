@@ -12,6 +12,17 @@ from cassandra.cluster import Cluster
 from sys import argv
 
 
+def hash_c(v):
+    """ Round some value v to the closest multiple of 2.5, and return the appropriate multiplier of 2.5 to get this
+    number.
+
+    :param v: Celestial value to hash (alpha or delta).
+    :return: The new, hashed value.
+    """
+    from math import ceil
+    return ceil((v + (2.5 - v) % v if v != 0 else 0) / 2.5)
+
+
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
     if len(argv) != 3:
@@ -35,12 +46,14 @@ if __name__ == '__main__':
     session.execute("""
         CREATE TABLE IF NOT EXISTS tycho.region (
             TYC1 int,
+            HRAmin int,
+            HDEmin int,
             RAmin float,
             RAmax float,
             DEmin float,
             DEmax float,
             InRegion set<frozen <list<int>>>,
-            PRIMARY KEY (TYC1)
+            PRIMARY KEY (HRAmin, HDEmin)
         ) """)
 
     # Our prepared statement. Execute for each region.
@@ -60,8 +73,8 @@ if __name__ == '__main__':
                     'DEmin': float(entry[29:35]),
                     'DEmax': float(entry[36:42])
                 }
-
-                session.execute(p.bind((i + 1, node['RAmin'], node['RAmax'], node['DEmin'], node['DEmax'])))
+                session.execute(p.bind((i + 1, hash_c(node['RAmax']), hash_c(node['DEmax']),
+                                        node['RAmin'], node['RAmax'], node['DEmin'], node['DEmax'])))
 
             except ValueError as e:
                 pass
