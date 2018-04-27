@@ -92,19 +92,18 @@ if __name__ == '__main__':
                     'e_BTmag': float(entry[117:122]),
                 }
 
-                if node['BTmag'] < 9.0:
-                    session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
-                                            node['pmRA'], node['pmDE'], node['e_RAmdeg'], node['e_DEmdeg'],
-                                            node['e_pmRA'], node['e_pmDE'], node['EpRAm'], node['EpDEm'],
-                                            node['BTmag'], node['e_BTmag'])))
-                    session.execute('UPDATE tycho.region '
-                                    'SET InRegion = InRegion + {[' +
-                                    '{}, '.format(node['TYC1']) +
-                                    '{}, '.format(node['TYC2']) +
-                                    '{}'.format(node['TYC3']) +
-                                    ']} WHERE ' +
-                                    'HRAmin = {} AND '.format(hash_c(node['RAmdeg'])) +
-                                    'HDEmin = {}'.format(hash_c(node['DEmdeg'])))
+                session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
+                                        node['pmRA'], node['pmDE'], node['e_RAmdeg'], node['e_DEmdeg'],
+                                        node['e_pmRA'], node['e_pmDE'], node['EpRAm'], node['EpDEm'],
+                                        node['BTmag'], node['e_BTmag'])))
+                session.execute('UPDATE tycho.region '
+                                'SET InRegion = InRegion + {[' +
+                                '{}, '.format(node['TYC1']) +
+                                '{}, '.format(node['TYC2']) +
+                                '{}'.format(node['TYC3']) +
+                                ']} WHERE ' +
+                                'HRAmin = {} AND '.format(hash_c(node['RAmdeg'])) +
+                                'HDEmin = {}'.format(hash_c(node['DEmdeg'])))
 
             except ValueError as e:g
                 pass
