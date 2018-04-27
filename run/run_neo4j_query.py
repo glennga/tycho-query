@@ -4,9 +4,9 @@ Usage: python3 run_neo4j_query.py [uri] [username] [password] [cql-file]
 """
 
 from neo4j.v1 import GraphDatabase
+from numpy import average
 from timeit import timeit
 from sys import argv
-
 
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the query file.
@@ -19,15 +19,15 @@ if __name__ == '__main__':
     session = driver.session()
 
     # Load our file into memory, do not read our comments.
-    queries = []
+    queries, r_t = [], []
     with open(argv[4], 'r') as cql_f:
         for line in cql_f:
-            queries.append(line) if not line.startswith('//') else None
+            queries.append(line.strip()) if line.strip() and not line.startswith('//') else None
 
-    # Run our query once.
-    print('Running Time (1st): {}s'.format(timeit(stmt=lambda: [session.run(q) for q in queries], number=1)))
-
-    # Run our query set 10 times.
-    print('Running Time (10): {}s'.format(timeit(stmt=lambda: [session.run(q) for q in queries], number=10)))
+    # Run our queries 15 times.
+    for i in range(15):
+        r_t.append(timeit(stmt=lambda: [session.run(q) for q in queries], number=1))
+        print('Running Time [{}]: {}s'.format(i, r_t[-1]))
+    print('Average Running Time: {}s'.format(average(r_t)))
 
     session.close(), driver.close()

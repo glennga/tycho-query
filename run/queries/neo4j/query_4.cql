@@ -14,4 +14,4 @@ MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 79.1708 > a.RAmin AND 79.1708 < a.RA
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 78.6333 > a.RAmin AND 78.6333 < a.RAmax AND -8.2017 > a.DEmin AND -8.2017 < a.DEmax AND s.BTmag < 6.0 RETURN s
 
 // Search for all stars near Betelgeuse's location within 2 degrees visible by the human eye.
-MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 88.7917 > a.RAmin AND 88.7917 < a.RAmax AND 7.4069 > a.DEmin AND 7.4069 < a.DEmax AND s.BTmag < 6.0 RETURN sb
+MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 88.7917 > a.RAmin AND 88.7917 < a.RAmax AND 7.4069 > a.DEmin AND 7.4069 < a.DEmax AND s.BTmag < 6.0 RETURN s
