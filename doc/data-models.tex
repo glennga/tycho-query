@@ -1,17 +1,86 @@
-%%
-%% Author: glenn
-%% 4/25/18
-%%
-
-% Preamble
-\documentclass[11pt]{article}
-
-% Packages
-\usepackage{a4wide}
-
-% Document
-\begin{document}
+\section{Data Models}\label{sec:dataModels}
+Given a catalog of stars, how can we represent each individual star?
+Broadly speaking, how can we model our catalog of stars for efficient and correct spatial queries?
 
 
 
-\end{document}
+\subsection{Relational Data Model}\label{subsec:relationalDataModel}
+The relational data model is the most popular data abstraction, and arguably the most natural.
+Here data is stored in tuples.
+The schema is defined before data is added, meaning that each tuple of a given table has the same number of attributes.
+If thought of as a table, the number of columns is fixed by the number of tuples is variable.
+Interaction between this model involves the use of relational algebra (SQL).
+
+\subsection{Column Store Data Model}\label{subsec:key-valueDataModel}
+The column store data model can be thought of as the segmentation of the relational data model into several
+two-column tables consisting of a single attribute of the original table and a primary key based off this attribute.
+These segmented tables are then grouped in a column family, and this is repeated for other relational tables.
+Data is accessed by specifying the desired row, column, and column family.
+Advantages of column stored data as opposed to relational data models include denormalization (schema does not have to
+be defined before data insertion), scalability, and fast querying.
+Cons include eventual consistency (may take a while for all nodes to be consistent).
+
+\texttt{Apache Cassandra} is the column store database that is being tested here, which uses the \texttt{CQL}
+(Cassandra Query Language) to search the database.
+
+A clustered Cassandra database is leaderless,
+
+
+\subsection{Graph Data Model}\label{subsec:graphDataModel}
+Relative to the relational data model, the graph data model focuses on the relationship between various tuples.
+Here data is stored in nodes as attributes, and relationships are stored as edges between nodes.
+Data is accessed by simply traversing the graph.
+No joins need to be performed.
+Graph models shine in relationship querying and denormalization as opposed to a relational data model.
+The disadvantages of this model are that transactions are not efficient as the relational model as well (again, loss
+of ACID).
+In comparison to the column store model, a graph is much harder to partition that a column.
+
+\texttt{Neo4J} is the graph database that is being tested here, which uses the \texttt{Cypher} language to query the
+graph.
+
+%
+%
+%\subsection{Graph Data Model}\label{subsec:graphDataModels}
+%\begin{figure}
+%    \centering{
+%    \includegraphics[scale=0.2]{images/relationial.png}
+%    \caption{
+%    % Cite:  https://www.slideshare.net/neo4j/rdbms-to-graphs?from_action=save
+%    Diagram depicting relationships between tuples in various tables.
+%    } \label{figure:relationalModel}
+%    }
+%\end{figure}
+%The relational data model used in SQL treats data as tuples, and are organized into tables.
+%Relationships between each tuple are established through foreign keys between these tables.
+%~\autoref{figure:relationalModel} describes how a friends to an individual Andreas are related across three tables.
+%To determine who Andreas' friends are we find the Andreas entry in the \texttt{Person} table, search for all
+%instances of this entry in the \texttt{Person-Friend} table \& note the friend field, and return the entries in the
+%\texttt{Friend} table that match the friend field from the \texttt{Person-Friend} table.
+%
+%\begin{figure}
+%    \centering{
+%    \includegraphics[scale=0.2]{images/graph.png}
+%    \caption{
+%    % Cite:  https://www.slideshare.net/neo4j/rdbms-to-graphs?from_action=save
+%    Diagram depicting relationships between nodes in a graph.
+%    } \label{figure:graphModel}
+%    }
+%\end{figure}
+%A graph consists of nodes and edges.
+%Relationships between each node are established through edges between each node.
+%~\autoref{figure:graphModel} describes the same situation of determining who Andreas' friends are, but using a graph
+%data model.
+%In this example, the process of finding friends involves searching for the Andreas node, searching for the
+%\texttt{KNOWS} edges in that node's edge set, and returning the nodes associated with the matching edges.
+%
+%With
+%
+%\subsection{Neo4J Graph DBMS}\label{subsec:neo4jGraphDbms}
+%
+%
+%\subsection{Apache Spark}\label{subsec:apacheSparkWGraphxDbms}
+%
+%
+%
+%

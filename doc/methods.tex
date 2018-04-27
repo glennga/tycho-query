@@ -1,0 +1,78 @@
+\section{Methods}\label{sec:methods}
+\subsection{Tycho2 Dataset}\label{subsec:tycho2Dataset}
+The dataset used for all queries in this paper comes from the Tycho-2 dataset.
+
+
+All experiments were performed on three node clusters, with each machine of type \texttt{n1-standard-1} (1 virtual CPU,
+3.75GB of memory).
+The dataset used is the ..
+
+\subsection{Schema and Clustering}\label{subsec:schema}
+Each star will have their Tycho IDs, current positions (right ascension, declination), proper motions, apparent
+magnitude, and corresponding error terms saved as attributes.
+The relationships between each star is their angular separation, only stored for stars that are within 10 degrees of
+one another.
+
+Each system will be allocated three nodes.
+
+\subsubsection{Neo4J}
+Representing the specified scheme above is natural if we treat each star as a node, each attribute as an attribute
+of the node, and each relationship as an edge between each close star.
+
+Loading each star was performed using the following statement for each node:
+%\begin{flalign*}
+%    &\texttt{CREATE (s:Star \{)} && \\
+%    &\texttt{\hspace*{1cm} TYC1: \ldots} && \\
+%    &\texttt{\hspace*{1cm} TYC1: \ldots} && \\
+%    &\texttt{\hspace*{1cm} TYC1: \ldots} && \\
+%    &\texttt{\hspace*{1cm} .} && \\
+%    &\texttt{\hspace*{1cm} .} && \\
+%    &\texttt{\hspace*{1cm} .} && \\
+%    &\texttt{\})}
+%\end{flalign*}
+
+The relationships were generated as such (after loading each node):
+%\begin{flalign*}
+%    &\texttt{MATCH} &\texttt{(s1 : Star),(s2 : Star)} && \\
+%    &\texttt{WHERE } &\theta(\texttt{s1, s2}) < \phi && \\
+%    &\texttt{CREATE} &\texttt{(a)-[r : NEARBY \{} \theta(\texttt{s1, s2}) \texttt{\}]-(b)} && \\
+%\end{flalign*}
+
+The clustering used here will consist of one core server (for read and writes) and two read replicas.
+Neo4J describes this as "casual clustering."
+
+\subsubsection{Cassandra}
+Representation of the scheme above involves two tables: one for the stars themselves, and another for the relationships
+between each star.
+The schema for the stars table is below:
+%\begin{flalign*}
+%    &\texttt{CREATE TABLE STARS (} && \\
+%    &\texttt{\hspace*{1cm} TYC1 INT, } && \\
+%    &\texttt{\hspace*{1cm} TYC2 INT, } && \\
+%    &\texttt{\hspace*{1cm} TYC3 INT, } && \\
+%    &\texttt{\hspace*{1cm} .} && \\
+%    &\texttt{\hspace*{1cm} .} && \\
+%    &\texttt{\hspace*{1cm} .} && \\
+%    &\texttt{\hspace*{1cm} PRIMARY KEY(TYC1, TYC2, TYC2)} && \\
+%    &\texttt{);} && \\
+%
+%    &\texttt{CREATE TABLE THETA (} && \\
+%    &\texttt{\hspace*{1cm} TYC1_A INT, } && \\
+%    &\texttt{\hspace*{1cm} TYC2_A INT, } && \\
+%    &\texttt{\hspace*{1cm} TYC3_A INT, } && \\
+%    &\texttt{\hspace*{1cm} TYC1_B} && \\
+%    &\texttt{\hspace*{1cm} TYC2_B} && \\
+%    &\texttt{\hspace*{1cm} TYC3_C} && \\
+%    &\texttt{\hspace*{1cm} THETA} && \\
+%    &\texttt{\hspace*{1cm} PRIMARY KEY(TYC1_A, TYC2_A, TYC3_A, TYC1_B, TYC2_B, TYC3_B)} && \\
+%    &\texttt{);}
+%\end{flalign*}
+
+
+
+
+
+
+\subsection{Queries}\label{subsec:queries}
+% A key search. Given the star identifier, which star
+
