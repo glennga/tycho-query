@@ -92,7 +92,7 @@ if __name__ == '__main__':
                     'e_BTmag': float(entry[117:122]),
                 }
 
-                if node['BTmag'] < 9.5:
+                if node['BTmag'] < 10.0:
                     session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
                                             node['pmRA'], node['pmDE'], node['e_RAmdeg'], node['e_DEmdeg'],
                                             node['e_pmRA'], node['e_pmDE'], node['EpRAm'], node['EpDEm'],

@@ -57,7 +57,7 @@ if __name__ == '__main__':
                     'e_BTmag': float(entry[117:122]),
                 }
 
-                if node['BTmag'] < 9.5:
+                if node['BTmag'] < 10.0:
                     session.run('CREATE (s:Star {' +
                                 'TYC1: {}, '.format(node['TYC1']) +
                                 'TYC2: {}, '.format(node['TYC2']) +

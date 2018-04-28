@@ -4,9 +4,11 @@ Usage: python3 run_neo4j_query.py [uri] [username] [password] [cql-file]
 """
 
 from neo4j.v1 import GraphDatabase
+from neo4j.util import watch
 from numpy import average, std
+from logging import DEBUG
 from timeit import timeit
-from sys import argv
+from sys import argv, stdout
 
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the query file.
@@ -14,9 +16,10 @@ if __name__ == '__main__':
         print('Usage: python3 run_neo4j_query.py [uri] [username] [password] [cql-file]')
         exit(1)
 
-    # Connect to the database, and start a session.
+    # Connect to the database, and start a session. Enable logging.
     driver = GraphDatabase.driver(argv[1], auth=(argv[2], argv[3]))
     session = driver.session()
+    watch("neo4j.bolt", DEBUG, stdout)
 
     # Load our file into memory, do not read our comments.
     queries, r_t = [], []
