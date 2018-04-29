@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                 'TYC3: {}, '.format(node['TYC3']) +
                                 'RAmdeg: {}, '.format(node['RAmdeg']) +
                                 'DEmdeg: {}, '.format(node['DEmdeg']) +
-                                'BTmag: {}, '.format(node['BTmag']) +
+                                'BTmag: {}'.format(node['BTmag']) +
                                 '})')
                     session.run('MERGE (a:Region { ' +
                                 'TYC1: {}'.format(node['TYC1']) +
