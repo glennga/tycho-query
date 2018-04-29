@@ -59,7 +59,7 @@ def execute_query_sets(q):
 
 if __name__ == '__main__':
     # We need to be passed the URI, the location of the query file, and the number of subqueries.
-    if len(argv) != 4:
+    if len(argv) != 5:
         print('Usage: python3 query.py [uri] [cql-file] [index-file] [n]')
         exit(1)
 
@@ -76,11 +76,11 @@ if __name__ == '__main__':
             # Flush our buffer q_t when we have a complete subquery set.
             if n_c < int(argv[4]):
                 n_c = (n_c + 1) if not line.startswith(';') else n_c
-                q_t.append(line) if not line.startswith(';') else None
+                q_t.append(line.strip()) if line.strip() and not line.startswith(';') else None
             else:
                 queries.append(q_t)
                 n_c = (n_c + 1) if not line.startswith(';') else n_c
-                q_t = [line] if not line.startswith(';') else q_t
+                q_t = [line.strip()] if line.strip() and not line.startswith(';') else q_t
 
     # Run our queries 15 times.
     for i in range(15):
