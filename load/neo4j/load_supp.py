@@ -4,14 +4,7 @@
     2. TYC3      <--- GSC Component Identifier
     3. RAmdeg    <--- Mean Right Ascension
     4. DEmdeg    <--- Mean Declination
-    5. pmRA      <--- Proper Motion Right Ascension
-    6. pmDE      <--- Proper Motion Declination
-    7. e_RAmdeg  <--- Mean Right Ascension Standard Error
-    8. e_DEmdeg  <--- Mean Declination Standard Error
-    9. e_pmRA    <--- Proper Motion Right Ascension Standard Error
-    10. e_pmDE   <--- Proper Motion Declination Standard Error
-    11. BTmag    <--- Magnitude
-    12. e_BTmag  <--- Magnitude Standard Error
+    5. BTmag    <--- Magnitude
 
 Each region (as of now) has the following property:
 
@@ -43,14 +36,7 @@ if __name__ == '__main__':
                     'TYC3': int(entry[11]),
                     'RAmdeg': float(entry[15:27]),
                     'DEmdeg': float(entry[28:40]),
-                    'pmRA': float(entry[42:48]),
-                    'pmDE': float(entry[50:56]),
-                    'e_RAmdeg': float(entry[57:62]),
-                    'e_DEmdeg': float(entry[63:68]),
-                    'e_pmRA': float(entry[69:74]),
-                    'e_pmDE': float(entry[75:80]),
                     'BTmag': float(entry[83:89]),
-                    'e_BTmag': float(entry[90:95]),
                 }
 
                 if node['BTmag'] < 10.0:
@@ -60,14 +46,7 @@ if __name__ == '__main__':
                                 'TYC3: {}, '.format(node['TYC3']) +
                                 'RAmdeg: {}, '.format(node['RAmdeg']) +
                                 'DEmdeg: {}, '.format(node['DEmdeg']) +
-                                'pmRA: {}, '.format(node['pmRA']) +
-                                'pmDE: {}, '.format(node['pmDE']) +
-                                'e_RAmdeg: {}, '.format(node['e_RAmdeg']) +
-                                'e_DEmdeg: {}, '.format(node['e_DEmdeg']) +
-                                'e_pmRA: {}, '.format(node['e_pmRA']) +
-                                'e_pmDE: {}, '.format(node['e_pmDE']) +
                                 'BTmag: {}, '.format(node['BTmag']) +
-                                'e_BTmag: {}'.format(node['e_BTmag']) +
                                 '})')
                     session.run('MERGE (a:Region { ' +
                                 'TYC1: {}'.format(node['TYC1']) +

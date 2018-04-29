@@ -48,25 +48,15 @@ if __name__ == '__main__':
             TYC3 int,
             RAmdeg float,
             DEmdeg float,
-            pmRA float,
-            pmDE float,
-            e_RAmdeg float,
-            e_DEmdeg float, 
-            e_pmRA float,
-            e_pmDE float,
-            EpRAm float,
-            EpDEm float,
             BTmag float,
-            e_BTmag float, 
             PRIMARY KEY (TYC1, TYC2, TYC3)
     ) """)
 
     # Our prepared statements. Execute for each star.
     p = session.prepare("""
         INSERT INTO tycho.stars (
-            TYC1, TYC2, TYC3, RAmdeg, DEmdeg, pmRA, pmDE, e_RAmdeg, 
-            e_DEmdeg, e_pmRA, e_pmDE, BTmag, e_BTmag
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """)
+            TYC1, TYC2, TYC3, RAmdeg, DEmdeg, BTmag
+        ) VALUES (?, ?, ?, ?, ?, ?) """)
 
     # Load our file. We are going to read line by line (ughghghghghghhggh).
     with open(argv[2], 'r') as c_f:
@@ -78,20 +68,12 @@ if __name__ == '__main__':
                     'TYC3': int(entry[11]),
                     'RAmdeg': float(entry[15:27]),
                     'DEmdeg': float(entry[28:40]),
-                    'pmRA': float(entry[42:48]),
-                    'pmDE': float(entry[50:56]),
-                    'e_RAmdeg': float(entry[57:62]),
-                    'e_DEmdeg': float(entry[63:68]),
-                    'e_pmRA': float(entry[69:74]),
-                    'e_pmDE': float(entry[75:80]),
                     'BTmag': float(entry[83:89]),
-                    'e_BTmag': float(entry[90:95]),
                 }
 
                 if node['BTmag'] < 10.0:
                     session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
-                                            node['pmRA'], node['pmDE'], node['e_RAmdeg'], node['e_DEmdeg'],
-                                            node['e_pmRA'], node['e_pmDE'], node['BTmag'], node['e_BTmag'])))
+                                            node['BTmag'])))
                     session.execute('UPDATE tycho.region '
                                     'SET InRegion = InRegion + {[' +
                                     '{}, '.format(node['TYC1']) +
