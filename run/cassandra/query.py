@@ -4,6 +4,7 @@
 Usage: python3 query.py [uri] [cql-file] [index-file] [n]
 """
 
+from cassandra.query import tuple_factory
 from cassandra.cluster import Cluster
 from numpy import average, std
 from timeit import timeit
@@ -40,21 +41,21 @@ def execute_query_sets(q):
     :param q: Query sequence to execute.
     :return: None.
     """
-    previous = []
+    previous = [[]]
 
     for q_i in q:
         # Custom function (not CQL), compute the hash for the following values.
         if q_i.split()[0] == 'COMPUTE' and q_i.split()[1] == 'HASH':
             ra, dec = q_i.split()[2], q_i.split()[3]
-            previous = [lookup_tyc(ra, dec, argv[3])]
+            previous = [[lookup_tyc(ra, dec, argv[3])]]
 
         else:
             # Otherwise, execute the query. Pass the previous result if desired.
-            if q_i.find('{') and q_i.find('}'):
-                previous = session.execute(q_i.format(p=previous))
+            if q_i.find('?'):
+                previous = session.execute(q_i.replace('?', previous[0][0]))
             else:
                 previous = session.execute(q_i)
-            print('Result: {}'.format(previous))
+            print('Result: ' + ','.join([str(x) for x in previous]))
 
 
 if __name__ == '__main__':
@@ -67,6 +68,7 @@ if __name__ == '__main__':
     cluster = Cluster([argv[1]])
     session = cluster.connect()
     session.set_keyspace('tycho')
+    session.row_factory = tuple_factory
 
     # Load our file into memory, do not read our comments.
     queries, q_t, r_t, n_c = [], [], [], 0
