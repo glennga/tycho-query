@@ -1,17 +1,17 @@
-// Search for all stars near Canopus's location within 2 degrees visible by the human eye.
+// 7018 01160 1|H|042.15935412|-37.40235393|   81.1|   55.6|  3.2|  3.4|  0.8|  0.9| | 8.710|0.016| 8.114|0.015| 54|T| 13112B
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 95.9875 > a.RAmin AND 95.9875 < a.RAmax AND -52.6956 > a.DEmin AND -52.6956 < a.DEmax AND s.BTmag < 6.0 RETURN s
 
-// Search for all stars near Alpha Centauri A's location within 2 degrees visible by the human eye.
+// 4532 02097 1|T|080.66578588|+79.22640963|       |       |  6.2|  6.8|     |     | | 9.515|0.045| 9.170|0.049|230|T|
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 219.8958 > a.RAmin AND 219.8958 < a.RAmax AND -60.8375 > a.DEmin AND -60.8375 < a.DEmax AND s.BTmag < 6.0 RETURN s
 
-// Search for all stars near Arcturus's location within 2 degrees visible by the human eye.
+// 0230 00672 1| |137.90154007|  3.77865571|  -22.9|   -3.9|  7|  9| 1.5| 1.5|1991.45|1990.82| 7|0.9|0.6|0.8|0.6| 9.165|0.018| 8.826|0.015|999|T| 45124   |137.90159250|  3.77866500|1.77|1.36|  6.6|  9.3| | 0.3
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 213.9167 > a.RAmin AND 213.9167 < a.RAmax AND 19.1822 > a.DEmin AND 19.1822 < a.DEmax AND s.BTmag < 6.0 RETURN s
 
-// Search for all stars near Capella's location within 2 degrees visible by the human eye.
+// 1034 00319 1| |282.58271209| 12.45930082|    4.8|   10.3| 10| 11| 1.3| 1.2|1990.60|1989.97| 8|0.6|0.9|0.6|0.8| 9.368|0.021| 9.011|0.018|510|T|         |282.58270139| 12.45927667|1.78|1.78|  9.6| 11.7| |-0.2
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 79.1708 > a.RAmin AND 79.1708 < a.RAmax AND 45.9981 > a.DEmin AND 45.9981 < a.DEmax AND s.BTmag < 6.0 RETURN s
 
-// Search for all stars near Rigel's location within 2 degrees visible by the human eye.
+// 1148 01117 1| |331.36198727| 13.53828805|   58.0|   81.8|  9| 10| 1.0| 0.9|1990.21|1989.73|12|0.9|0.8|0.9|0.9| 9.550|0.021| 8.889|0.015|999|T|         |331.36185167| 13.53809917|1.85|1.69|  8.7| 10.4| |-0.3
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 78.6333 > a.RAmin AND 78.6333 < a.RAmax AND -8.2017 > a.DEmin AND -8.2017 < a.DEmax AND s.BTmag < 6.0 RETURN s
 
-// Search for all stars near Betelgeuse's location within 2 degrees visible by the human eye.
+// 2112 00523 1| |281.21247956| 24.88268017|    2.2|   -5.5|  8|  7| 1.1| 1.0|1990.67|1990.87|11|1.0|0.7|1.0|0.7| 9.447|0.017| 9.165|0.014|636|T|         |281.21247389| 24.88269278|1.47|1.67|  8.2|  7.3| | 0.0
 MATCH (s:Star)-[:CONTAINS]-(a:Region) WHERE 88.7917 > a.RAmin AND 88.7917 < a.RAmax AND 7.4069 > a.DEmin AND 7.4069 < a.DEmax AND s.BTmag < 6.0 RETURN s
