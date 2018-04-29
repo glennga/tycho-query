@@ -1,6 +1,6 @@
 """ Neo4J query executor (and timer). CQL files must contain valid syntax, and queries must be separated by a newline.
 
-Usage: python3 run_neo4j_query.py [uri] [username] [password] [cql-file]
+Usage: python3 query.py [uri] [username] [password] [cql-file]
 """
 
 from neo4j.v1 import GraphDatabase
@@ -13,7 +13,7 @@ from sys import argv, stdout
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the query file.
     if len(argv) != 5:
-        print('Usage: python3 run_neo4j_query.py [uri] [username] [password] [cql-file]')
+        print('Usage: python3 query.py [uri] [username] [password] [cql-file]')
         exit(1)
 
     # Connect to the database, and start a session. Enable logging.

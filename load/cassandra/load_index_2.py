@@ -6,7 +6,7 @@
     4. DEmin     <--- Smallest DEC within Region
     5. DEmax     <--- Largest DEC within Region
 
-Usage: python3 cassandra_load_index.py [uri] [index]
+Usage: python3 load_index_2.py [uri] [index]
 """
 from cassandra.cluster import Cluster
 from sys import argv

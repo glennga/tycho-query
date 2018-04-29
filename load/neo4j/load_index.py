@@ -6,7 +6,7 @@
     4. DEmin     <--- Smallest DEC within Region
     5. DEmax     <--- Largest DEC within Region
 
-Usage: python3 neo4j_load_index.py [uri] [username] [password] [index]
+Usage: python3 load_index.py [uri] [username] [password] [index]
 """
 from neo4j.v1 import GraphDatabase
 from sys import argv
@@ -15,7 +15,7 @@ from sys import argv
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the index.
     if len(argv) != 5:
-        print('Usage: python3 neo4j_load.py [uri] [username] [password] [index]')
+        print('Usage: python3 load_index.py [uri] [username] [password] [index]')
         exit(1)
 
     # Connect to the database, and start a session.

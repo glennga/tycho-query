@@ -6,7 +6,7 @@
     4. DEmin     <--- Smallest DEC within Region
     5. DEmax     <--- Largest DEC within Region
 
-Usage: python3 cassandra_load_index.py [uri] [index]
+Usage: python3 load_index_1.py [uri] [index]
 """
 from cassandra.cluster import Cluster
 from sys import argv
@@ -15,7 +15,7 @@ from sys import argv
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
     if len(argv) != 3:
-        print('Usage: python3 cassandra_load_index.py [uri] [catalog]')
+        print('Usage: python3 load_index_1.py [uri] [catalog]')
         exit(1)
 
     # Connect to the database, and start a session.

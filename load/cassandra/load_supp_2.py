@@ -1,4 +1,4 @@
-""" Cassandra database loader for the Tycho-2 dataset. Each table has the following properties:
+""" Cassandra database loader for the Tycho-2 supplement dataset. Each table has the following properties:
 
     1. TYC2      <--- GSC Running Number
     2. TYC3      <--- GSC Component Identifier
@@ -10,12 +10,10 @@
     8. e_DEmdeg  <--- Mean Declination Standard Error
     9. e_pmRA    <--- Proper Motion Right Ascension Standard Error
     10. e_pmDE   <--- Proper Motion Declination Standard Error
-    11. EpRAm    <--- Mean Epoch Right Ascension
-    12. EpDEm    <--- Mean Epoch Declination
-    13. BTmag    <--- Magnitude
-    14. e_BTmag  <--- Magnitude Standard Error
+    11. BTmag    <--- Magnitude
+    12. e_BTmag  <--- Magnitude Standard Error
 
-Usage: python3 cassandra_load.py [uri] [catalog]
+Usage: python3 load_supp_2.py [uri] [catalog]
 """
 from cassandra.cluster import Cluster
 from sys import argv
@@ -34,7 +32,7 @@ def hash_c(v):
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
     if len(argv) != 3:
-        print('Usage: python3 cassandra_load.py [uri] [catalog]')
+        print('Usage: python3 load_supp_2.py [uri] [catalog]')
         exit(1)
 
     # Connect to the database, and start a session.
@@ -67,8 +65,8 @@ if __name__ == '__main__':
     p = session.prepare("""
         INSERT INTO tycho.stars (
             TYC1, TYC2, TYC3, RAmdeg, DEmdeg, pmRA, pmDE, e_RAmdeg, 
-            e_DEmdeg, e_pmRA, e_pmDE, EpRAm, EpDEm, BTmag, e_BTmag
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """)
+            e_DEmdeg, e_pmRA, e_pmDE, BTmag, e_BTmag
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """)
 
     # Load our file. We are going to read line by line (ughghghghghghhggh).
     with open(argv[2], 'r') as c_f:
@@ -82,21 +80,18 @@ if __name__ == '__main__':
                     'DEmdeg': float(entry[28:40]),
                     'pmRA': float(entry[42:48]),
                     'pmDE': float(entry[50:56]),
-                    'e_RAmdeg': float(entry[57:60]),
-                    'e_DEmdeg': float(entry[61:64]),
-                    'e_pmRA': float(entry[65:69]),
-                    'e_pmDE': float(entry[70:74]),
-                    'EpRAm': float(entry[75:82]),
-                    'EpDEm': float(entry[83:90]),
-                    'BTmag': float(entry[110:116]),
-                    'e_BTmag': float(entry[117:122]),
+                    'e_RAmdeg': float(entry[57:62]),
+                    'e_DEmdeg': float(entry[63:68]),
+                    'e_pmRA': float(entry[69:74]),
+                    'e_pmDE': float(entry[75:80]),
+                    'BTmag': float(entry[83:89]),
+                    'e_BTmag': float(entry[90:95]),
                 }
 
                 if node['BTmag'] < 10.0:
                     session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
                                             node['pmRA'], node['pmDE'], node['e_RAmdeg'], node['e_DEmdeg'],
-                                            node['e_pmRA'], node['e_pmDE'], node['EpRAm'], node['EpDEm'],
-                                            node['BTmag'], node['e_BTmag'])))
+                                            node['e_pmRA'], node['e_pmDE'], node['BTmag'], node['e_BTmag'])))
                     session.execute('UPDATE tycho.region '
                                     'SET InRegion = InRegion + {[' +
                                     '{}, '.format(node['TYC1']) +
@@ -106,5 +101,5 @@ if __name__ == '__main__':
                                     'HRAmin = {} AND '.format(hash_c(node['RAmdeg'])) +
                                     'HDEmin = {}'.format(hash_c(node['DEmdeg'])))
 
-            except ValueError as e:g
+            except ValueError as e:
                 pass

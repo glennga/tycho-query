@@ -15,7 +15,7 @@
     13. BTmag    <--- Magnitude
     14. e_BTmag  <--- Magnitude Standard Error
 
-Usage: python3 cassandra_load.py [uri] [catalog]
+Usage: python3 load_1.py [uri] [catalog]
 """
 from cassandra.cluster import Cluster
 from sys import argv
@@ -24,7 +24,7 @@ from sys import argv
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
     if len(argv) != 3:
-        print('Usage: python3 cassandra_load.py [uri] [catalog]')
+        print('Usage: python3 load_1.py [uri] [catalog]')
         exit(1)
 
     # Connect to the database, and start a session.

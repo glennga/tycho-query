@@ -19,7 +19,7 @@ Each region (as of now) has the following property:
 
     1. TYC1      <--- GSC Region Number
 
-Usage: python3 neo4j_load.py [uri] [username] [password] [catalog]
+Usage: python3 load.py [uri] [username] [password] [catalog]
 """
 from neo4j.v1 import GraphDatabase
 from sys import argv
@@ -28,7 +28,7 @@ from sys import argv
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the catalog.
     if len(argv) != 5:
-        print('Usage: python3 neo4j_load.py [uri] [username] [password] [catalog]')
+        print('Usage: python3 load.py [uri] [username] [password] [catalog]')
         exit(1)
 
     # Connect to the database, and start a session.

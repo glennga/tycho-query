@@ -1,7 +1,7 @@
 """ Cassandra query executor (and timer). CQL files must contain valid syntax, queries must be separated by a
  newline, and the number of queries per set must be specified. If n > 1, the result of
 
-Usage: python3 run_cassandra_query.py [uri] [cql-file] [n]
+Usage: python3 query.py [uri] [cql-file] [n]
 """
 
 from cassandra.cluster import Cluster
@@ -45,7 +45,7 @@ def execute_query_sets(q):
 if __name__ == '__main__':
     # We need to be passed the URI, the location of the query file, and the number of subqueries.
     if len(argv) != 4:
-        print('Usage: python3 run_cassandra_query.py [uri] [cql-file] [n]')
+        print('Usage: python3 query.py [uri] [cql-file] [n]')
         exit(1)
 
     # Connect to the database, and start a session.
