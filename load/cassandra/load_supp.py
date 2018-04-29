@@ -4,35 +4,18 @@
     2. TYC3      <--- GSC Component Identifier
     3. RAmdeg    <--- Mean Right Ascension
     4. DEmdeg    <--- Mean Declination
-    5. pmRA      <--- Proper Motion Right Ascension
-    6. pmDE      <--- Proper Motion Declination
-    7. e_RAmdeg  <--- Mean Right Ascension Standard Error
-    8. e_DEmdeg  <--- Mean Declination Standard Error
-    9. e_pmRA    <--- Proper Motion Right Ascension Standard Error
-    10. e_pmDE   <--- Proper Motion Declination Standard Error
-    11. BTmag    <--- Magnitude
-    12. e_BTmag  <--- Magnitude Standard Error
+    5. BTmag    <--- Magnitude
 
-Usage: python3 load_supp_2.py [uri] [catalog]
+Usage: python3 load_supp.py [uri] [catalog]
 """
 from cassandra.cluster import Cluster
 from sys import argv
-
-def hash_c(v):
-    """ Round some value v to the closest multiple of 2.5, and return the appropriate multiplier of 2.5 to get this
-    number.
-
-    :param v: Celestial value to hash (alpha or delta).
-    :return: The new, hashed value.
-    """
-    from math import ceil
-    return ceil((v + (2.5 - v) % v if v != 0 else 0) / 2.5)
 
 
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
     if len(argv) != 3:
-        print('Usage: python3 load_supp_2.py [uri] [catalog]')
+        print('Usage: python3 load_supp.py [uri] [catalog]')
         exit(1)
 
     # Connect to the database, and start a session.
@@ -80,8 +63,7 @@ if __name__ == '__main__':
                                     '{}, '.format(node['TYC2']) +
                                     '{}'.format(node['TYC3']) +
                                     ']} WHERE ' +
-                                    'HRAmin = {} AND '.format(hash_c(node['RAmdeg'])) +
-                                    'HDEmin = {}'.format(hash_c(node['DEmdeg'])))
+                                    'TYC1 = {}'.format(node['TYC1']))
 
             except ValueError as e:
                 pass

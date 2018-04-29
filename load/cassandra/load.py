@@ -6,7 +6,7 @@
     4. DEmdeg    <--- Mean Declination
     5. BTmag    <--- Magnitude
 
-Usage: python3 load_1.py [uri] [catalog]
+Usage: python3 load.py [uri] [catalog]
 """
 from cassandra.cluster import Cluster
 from sys import argv
@@ -15,7 +15,7 @@ from sys import argv
 if __name__ == '__main__':
     # We need to be passed the URI and location of the catalog.
     if len(argv) != 3:
-        print('Usage: python3 load_1.py [uri] [catalog]')
+        print('Usage: python3 load.py [uri] [catalog]')
         exit(1)
 
     # Connect to the database, and start a session.
