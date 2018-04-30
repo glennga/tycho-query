@@ -22,6 +22,10 @@ if __name__ == '__main__':
     driver = GraphDatabase.driver(argv[1], auth=(argv[2], argv[3]))
     session = driver.session()
 
+    # Create our indices.
+    session.run('CREATE INDEX ON :Star(TYC1, TYC2, TYC3)')
+    session.run('CREATE INDEX ON :Region(TYC1)')
+
     # Load our file. We are going to read line by line (ughghghghghghhggh).
     with open(argv[4], 'r') as c_f:
         for i, entry in enumerate(c_f):

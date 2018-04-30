@@ -54,7 +54,7 @@ if __name__ == '__main__':
                     'BTmag': float(entry[110:116]),
                 }
 
-                if node['BTmag'] < 11.0:
+                if node['BTmag'] < 12.0:
                     session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
                                             node['BTmag'])))
                     session.execute('UPDATE tycho.region '
