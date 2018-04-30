@@ -15,7 +15,7 @@ def print_run(q):
     :param q: Query to execute.
     :return: None.
     """
-    print('Result: {}'.format(session.run(q).single()))
+    print('Result: ' + ','.join([str(x) for x in session.run(q)]))
 
 
 if __name__ == '__main__':
