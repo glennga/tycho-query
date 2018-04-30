@@ -15,6 +15,8 @@ Usage: python3 load_supp.py [uri] [username] [password] [catalog]
 from neo4j.v1 import GraphDatabase
 from sys import argv
 
+# Chunk size of each transaction.
+CHUNK_SIZE = 1000
 
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the catalog.
@@ -26,10 +28,22 @@ if __name__ == '__main__':
     driver = GraphDatabase.driver(argv[1], auth=(argv[2], argv[3]))
     session = driver.session()
 
+    # Create our indices.
+    session.run('CREATE INDEX ON :Star(TYC1, TYC2, TYC3)')
+    session.run('CREATE INDEX ON :Region(TYC1)')
+
+    # Commit counter, and the start of the first transaction.
+    tx = session.begin_transaction()
+    commit_i = 0
+
     # Load our file. We are going to read line by line (ughghghghghghhggh).
     with open(argv[4], 'r') as c_f:
         for entry in c_f:
             try:
+                if commit_i >= CHUNK_SIZE:
+                    tx.commit()
+                    tx, commit_i = session.begin_transaction(), 0
+
                 node = {
                     'TYC1': int(entry[:4]),
                     'TYC2': int(entry[6:10]),
@@ -40,23 +54,24 @@ if __name__ == '__main__':
                 }
 
                 if node['BTmag'] < 12.0:
-                    session.run('CREATE (s:Star {' +
-                                'TYC1: {}, '.format(node['TYC1']) +
-                                'TYC2: {}, '.format(node['TYC2']) +
-                                'TYC3: {}, '.format(node['TYC3']) +
-                                'RAmdeg: {}, '.format(node['RAmdeg']) +
-                                'DEmdeg: {}, '.format(node['DEmdeg']) +
-                                'BTmag: {}'.format(node['BTmag']) +
-                                '})')
-                    session.run('MERGE (a:Region { ' +
-                                'TYC1: {}'.format(node['TYC1']) +
-                                '})')
-                    session.run('MATCH (s:Star), (a:Region) WHERE ' +
-                                's.TYC1 = {} AND '.format(node['TYC1']) +
-                                's.TYC2 = {} AND '.format(node['TYC2']) +
-                                's.TYC3 = {} AND '.format(node['TYC3']) +
-                                'a.TYC1 = {} '.format(node['TYC1']) +
-                                'CREATE (a)-[:CONTAINS]->(s)')
+                    tx.run('CREATE (s:Star {' +
+                           'TYC1: {}, '.format(node['TYC1']) +
+                           'TYC2: {}, '.format(node['TYC2']) +
+                           'TYC3: {}, '.format(node['TYC3']) +
+                           'RAmdeg: {}, '.format(node['RAmdeg']) +
+                           'DEmdeg: {}, '.format(node['DEmdeg']) +
+                           'BTmag: {}'.format(node['BTmag']) +
+                           '})')
+                    tx.run('MERGE (a:Region { ' +
+                           'TYC1: {}'.format(node['TYC1']) +
+                           '})')
+                    tx.run('MATCH (s:Star), (a:Region) WHERE ' +
+                           's.TYC1 = {} AND '.format(node['TYC1']) +
+                           's.TYC2 = {} AND '.format(node['TYC2']) +
+                           's.TYC3 = {} AND '.format(node['TYC3']) +
+                           'a.TYC1 = {} '.format(node['TYC1']) +
+                           'CREATE (a)-[:CONTAINS]->(s)')
+                    commit_i = commit_i + 1
 
             except ValueError as e:
                 pass
