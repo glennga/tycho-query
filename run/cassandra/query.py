@@ -55,7 +55,10 @@ def execute_query_sets(q):
         else:
             # Otherwise, execute the query. Pass the previous result if desired.
             if q_i.find('?') != -1:
-                previous = [x for x in session.execute(q_i.replace('?', str(previous[0][0])))]
+                # Note: We execute the query even if the result of 'previous' is none.
+                previous = [x for x in session.execute(
+                    q_i.replace('?', str(previous[0][0]) if len(previous) != 0 else '-1'))]
+
             else:
                 previous = [x for x in session.execute(q_i)]
             print('Result: ' + (','.join([str(x) for x in previous]) if len(previous) != 0 else 'None'))
