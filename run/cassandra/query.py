@@ -34,6 +34,9 @@ def lookup_tyc(ra, dec, index_file):
             except ValueError:
                 pass
 
+    # If no matching TYC is found, return -1.
+    return -1
+
 
 def execute_query_sets(q):
     """ Given a sequence of queries, execute them and feed the result of the former into the latter.
@@ -41,21 +44,21 @@ def execute_query_sets(q):
     :param q: Query sequence to execute.
     :return: None.
     """
-    previous = [[]]
+    previous = []
 
     for q_i in q:
         # Custom function (not CQL), compute the hash for the following values.
         if q_i.split()[0] == 'COMPUTE' and q_i.split()[1] == 'HASH':
-            ra, dec = q_i.split()[2], q_i.split()[3]
+            ra, dec = float(q_i.split()[2]), float(q_i.split()[3])
             previous = [[lookup_tyc(ra, dec, argv[3])]]
 
         else:
             # Otherwise, execute the query. Pass the previous result if desired.
-            if q_i.find('?'):
-                previous = session.execute(q_i.replace('?', previous[0][0]))
+            if q_i.find('?') != -1:
+                previous = [x for x in session.execute(q_i.replace('?', str(previous[0][0])))]
             else:
-                previous = session.execute(q_i)
-            print('Result: ' + ','.join([str(x) for x in previous]))
+                previous = [x for x in session.execute(q_i)]
+            print('Result: ' + (','.join([str(x) for x in previous]) if len(previous) != 0 else 'None'))
 
 
 if __name__ == '__main__':
