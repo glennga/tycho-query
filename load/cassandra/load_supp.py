@@ -54,16 +54,15 @@ if __name__ == '__main__':
                     'BTmag': float(entry[83:89]),
                 }
 
-                if node['BTmag'] < 12.0:
-                    session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
-                                            node['BTmag'])))
-                    session.execute('UPDATE tycho.region '
-                                    'SET InRegion = InRegion + {[' +
-                                    '{}, '.format(node['TYC1']) +
-                                    '{}, '.format(node['TYC2']) +
-                                    '{}'.format(node['TYC3']) +
-                                    ']} WHERE ' +
-                                    'TYC1 = {}'.format(node['TYC1']))
+                session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
+                                        node['BTmag'])))
+                session.execute('UPDATE tycho.region '
+                                'SET InRegion = InRegion + {[' +
+                                '{}, '.format(node['TYC1']) +
+                                '{}, '.format(node['TYC2']) +
+                                '{}'.format(node['TYC3']) +
+                                ']} WHERE ' +
+                                'TYC1 = {}'.format(node['TYC1']))
 
             except ValueError as e:
                 pass

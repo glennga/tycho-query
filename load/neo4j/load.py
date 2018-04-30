@@ -53,28 +53,27 @@ if __name__ == '__main__':
                     'BTmag': float(entry[110:116]),
                 }
 
-                if node['BTmag'] < 12.0:
-                    tx.run("""
-                        CREATE (s:Star {
-                            TYC1: {TYC1}, 
-                            TYC2: {TYC2},
-                            TYC3: {TYC3},
-                            RAmdeg: {RAmdeg},
-                            DEmdeg: {DEmdeg},
-                            BTmag: {BTmag}
-                        })""", node)
-                    tx.run("""
-                        MERGE (a:Region {
-                            TYC1: {TYC1}
-                        })""", node)
-                    tx.run("""
-                        MATCH (s:Star), (a:Region) WHERE
-                            s.TYC1 = {TYC1} AND
-                            s.TYC2 = {TYC2} AND
-                            s.TYC3 = {TYC3} AND
-                            a.TYC1 = {TYC1}
-                        CREATE (a)-[:CONTAINS]->(s)""", node)
-                    commit_i = commit_i + 1
+                tx.run("""
+                    CREATE (s:Star {
+                        TYC1: {TYC1}, 
+                        TYC2: {TYC2},
+                        TYC3: {TYC3},
+                        RAmdeg: {RAmdeg},
+                        DEmdeg: {DEmdeg},
+                        BTmag: {BTmag}
+                    })""", node)
+                tx.run("""
+                    MERGE (a:Region {
+                        TYC1: {TYC1}
+                    })""", node)
+                tx.run("""
+                    MATCH (s:Star), (a:Region) WHERE
+                        s.TYC1 = {TYC1} AND
+                        s.TYC2 = {TYC2} AND
+                        s.TYC3 = {TYC3} AND
+                        a.TYC1 = {TYC1}
+                    CREATE (a)-[:CONTAINS]->(s)""", node)
+                commit_i = commit_i + 1
 
             except ValueError as e:
                 pass
