@@ -40,6 +40,10 @@ if __name__ == '__main__':
         INSERT INTO tycho.stars (
             TYC1, TYC2, TYC3, RAmdeg, DEmdeg, BTmag
         ) VALUES (?, ?, ?, ?, ?, ?) """)
+    p_q = session.prepare("""
+        UPDATE tycho.region
+        SET InRegion = InRegion + {[?, ?, ?]}
+        WHERE TYC1 = ? """)
 
     # Load our file. We are going to read line by line (ughghghghghghhggh).
     with open(argv[2], 'r') as c_f:
@@ -56,13 +60,7 @@ if __name__ == '__main__':
 
                 session.execute(p.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['RAmdeg'], node['DEmdeg'],
                                         node['BTmag'])))
-                session.execute('UPDATE tycho.region '
-                                'SET InRegion = InRegion + {[' +
-                                '{}, '.format(node['TYC1']) +
-                                '{}, '.format(node['TYC2']) +
-                                '{}'.format(node['TYC3']) +
-                                ']} WHERE ' +
-                                'TYC1 = {}'.format(node['TYC1']))
+                session.execute(p_q.bind((node['TYC1'], node['TYC2'], node['TYC3'], node['TYC1'])))
 
             except ValueError as e:
                 pass
