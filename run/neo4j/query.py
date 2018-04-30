@@ -16,6 +16,7 @@ def print_run(q):
     :return: None.
     """
     print('Result: ' + ','.join([str(x) for x in session.run(q)]))
+    # session.run(q)
 
 
 if __name__ == '__main__':
