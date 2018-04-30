@@ -16,7 +16,7 @@ from neo4j.v1 import GraphDatabase
 from sys import argv
 
 # Chunk size of each transaction.
-CHUNK_SIZE = 1000
+CHUNK_SIZE = 10000
 
 if __name__ == '__main__':
     # We need to be passed the URI, username, password, and location of the catalog.
@@ -54,26 +54,29 @@ if __name__ == '__main__':
                 }
 
                 if node['BTmag'] < 12.0:
-                    tx.run('CREATE (s:Star {' +
-                           'TYC1: {}, '.format(node['TYC1']) +
-                           'TYC2: {}, '.format(node['TYC2']) +
-                           'TYC3: {}, '.format(node['TYC3']) +
-                           'RAmdeg: {}, '.format(node['RAmdeg']) +
-                           'DEmdeg: {}, '.format(node['DEmdeg']) +
-                           'BTmag: {}'.format(node['BTmag']) +
-                           '})')
-                    tx.run('MERGE (a:Region { ' +
-                           'TYC1: {}'.format(node['TYC1']) +
-                           '})')
-                    tx.run('MATCH (s:Star), (a:Region) WHERE ' +
-                           's.TYC1 = {} AND '.format(node['TYC1']) +
-                           's.TYC2 = {} AND '.format(node['TYC2']) +
-                           's.TYC3 = {} AND '.format(node['TYC3']) +
-                           'a.TYC1 = {} '.format(node['TYC1']) +
-                           'CREATE (a)-[:CONTAINS]->(s)')
+                    tx.run("""
+                        CREATE (s:Star {
+                            TYC1: {TYC1}, 
+                            TYC2: {TYC2},
+                            TYC3: {TYC3},
+                            RAmdeg: {RAmdeg},
+                            DEmdeg: {DEmdeg},
+                            BTmag: {BTmag}
+                        })""", node)
+                    tx.run("""
+                        MERGE (a:Region {
+                            TYC1: {TYC1}
+                        })""", node)
+                    tx.run("""
+                        MATCH (s:Star), (a:Region) WHERE
+                            s.TYC1 = {TYC1} AND
+                            s.TYC2 = {TYC2} AND
+                            s.TYC3 = {TYC3} AND
+                            a.TYC1 = {TYC1}
+                        CREATE (a)-[:CONTAINS]->(s)""", node)
                     commit_i = commit_i + 1
 
             except ValueError as e:
                 pass
 
-    session.close(), driver.close()
+    session.close(), driver.close(), tx.commit()
