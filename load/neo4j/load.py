@@ -79,4 +79,4 @@ if __name__ == '__main__':
             except ValueError as e:
                 pass
 
-    session.close(), driver.close(), tx.commit()
+    tx.commit(), session.close(), driver.close()
