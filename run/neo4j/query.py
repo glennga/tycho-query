@@ -5,6 +5,7 @@ Usage: python3 query.py [uri] [username] [password] [cql-file] [index-file]
 
 from neo4j.v1 import GraphDatabase
 from timeit import timeit
+from time import sleep
 from sys import argv
 
 
@@ -47,8 +48,8 @@ def print_run(q):
         tyc1 = lookup_tyc(ra, dec, argv[5])
         q = q.split('?')[0] + str(tyc1) + q.split('?')[2]
 
-    print('Result: ' + ','.join([str(x) for x in session.run(q)]))
-    # session.run(q)
+    # print('Result: ' + ','.join([str(x) for x in session.run(q)]))
+    session.run(q)
 
 
 if __name__ == '__main__':
@@ -72,5 +73,6 @@ if __name__ == '__main__':
     for i in range(15):
         for j, q in enumerate(queries):
             print('Running Time [Query {}, Run {}]: {}'.format(j, i, timeit(stmt=lambda: print_run(q), number=1)))
+            sleep(0.25)
 
     session.close(), driver.close()
