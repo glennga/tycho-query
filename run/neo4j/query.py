@@ -4,6 +4,7 @@ Usage: python3 query.py [uri] [username] [password] [cql-file] [index-file]
 """
 
 from neo4j.v1 import GraphDatabase
+from numpy import average, std
 from timeit import timeit
 from time import sleep
 from sys import argv
@@ -64,7 +65,7 @@ if __name__ == '__main__':
     # watch("neo4j.bolt", DEBUG, stdout)
 
     # Load our file into memory, do not read our comments.
-    queries = []
+    queries, t_r = [], []
     with open(argv[4], 'r') as cql_f:
         for line in cql_f:
             queries.append(line.strip()) if line.strip() and not line.startswith('//') else None
@@ -72,7 +73,9 @@ if __name__ == '__main__':
     # Run our queries 15 times.
     for i in range(15):
         for j, q in enumerate(queries):
-            print('Running Time [Query {}, Run {}]: {}'.format(j, i, timeit(stmt=lambda: print_run(q), number=1)))
+            t_r.append(timeit(stmt=lambda: print_run(q), number=1))
+            print('Running Time [Query {}, Run {}]: {}'.format(j, i, t_r[-1]))
             sleep(0.25)
 
+    print('Average Running Time: {} +/- {}'.format(average(t_r), std(t_r)))
     session.close(), driver.close()

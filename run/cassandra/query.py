@@ -6,6 +6,7 @@ Usage: python3 query.py [uri] [cql-file] [index-file] [n]
 
 from cassandra.query import tuple_factory
 from cassandra.cluster import Cluster
+from numpy import average, std
 from timeit import timeit
 from time import sleep
 from sys import argv
@@ -93,6 +94,8 @@ if __name__ == '__main__':
     # Run our queries 15 times.
     for i in range(15):
         for j, q in enumerate(queries):
-            print('Running Time [Query {}, Run {}]: {}'.format(j, i, timeit(
-                stmt=lambda: execute_query_sets(q), number=1)))
+            r_t.append(timeit(stmt=lambda: execute_query_sets(q), number=1))
+            print('Running Time [Query {}, Run {}]: {}'.format(j, i, r_t[-1]))
             sleep(0.25)
+            
+    print('Average Running Time: {} +/- {}'.format(average(r_t), std(r_t)))
