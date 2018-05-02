@@ -84,21 +84,22 @@ if __name__ == '__main__':
 
             # Flush our buffer q_t when we have a complete subquery set.
             if n_c < int(argv[4]):
-                n_c = (n_c + 1) if not line.startswith(';') else n_c
+                n_c = (n_c + 1) if line.strip() and not line.startswith(';') else n_c
                 q_t.append(line.strip()) if line.strip() and not line.startswith(';') else None
             else:
+
+                # Append if necessary.
                 queries.append(q_t)
-                n_c = (n_c + 1) if not line.startswith(';') else n_c
-                q_t = [line.strip()] if line.strip() and not line.startswith(';') else q_t
+                if line.strip() and not line.startswith(';'):
+                    n_c, q_t = 1, [line.strip()]
+                else:
+                    n_c, q_t = 0, []
 
     # Run our queries 15 times.
     for i in range(15):
-
-        r_ti = 0
         for j, q in enumerate(queries):
-            r_ti = r_ti + timeit(stmt=lambda: execute_query_sets(q), number=1)
+            r_t.append(timeit(stmt=lambda: execute_query_sets(q), number=1))
+            print('Running Time [Query {}, Run {}]: {}'.format(j, i, r_t[-1]))
             sleep(0.25)
-        r_t.append(r_ti)
 
-        print('Running Time [Query {}, Run {}]: {}'.format(j, i, r_t[-1]))
     print('Average Running Time: {} +/- {}'.format(average(r_t), std(r_t)))
