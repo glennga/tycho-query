@@ -93,9 +93,12 @@ if __name__ == '__main__':
 
     # Run our queries 15 times.
     for i in range(15):
-        for j, q in enumerate(queries):
-            r_t.append(timeit(stmt=lambda: execute_query_sets(q), number=1))
-            print('Running Time [Query {}, Run {}]: {}'.format(j, i, r_t[-1]))
-            sleep(0.25)
 
+        r_ti = 0
+        for j, q in enumerate(queries):
+            r_ti = r_ti + timeit(stmt=lambda: execute_query_sets(q), number=1)
+            sleep(0.25)
+        r_t.append(r_ti)
+
+        print('Running Time [Query {}, Run {}]: {}'.format(j, i, r_t[-1]))
     print('Average Running Time: {} +/- {}'.format(average(r_t), std(r_t)))
