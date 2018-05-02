@@ -62,7 +62,7 @@ def execute_query_sets(q):
 
             else:
                 previous = [x for x in session.execute(q_i)]
-            print('Result: ' + (','.join([str(x) for x in previous]) if len(previous) != 0 else 'None'))
+            # print('Result: ' + (','.join([str(x) for x in previous]) if len(previous) != 0 else 'None'))
 
 
 if __name__ == '__main__':
@@ -97,5 +97,5 @@ if __name__ == '__main__':
             r_t.append(timeit(stmt=lambda: execute_query_sets(q), number=1))
             print('Running Time [Query {}, Run {}]: {}'.format(j, i, r_t[-1]))
             sleep(0.25)
-            
+
     print('Average Running Time: {} +/- {}'.format(average(r_t), std(r_t)))
