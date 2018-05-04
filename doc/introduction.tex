@@ -16,16 +16,14 @@ The steps we take to answer this are as follows:
     \item Presenting the resultant.
 \end{enumerate}
 
-The naive and slowest method requires iterating through each combination and performing a filter here.
-For $n$ elements in our catalog, this means our time complexity $T(n)$ is:
-\begin{equation}\label{eq:nearbyProblemComplexity}
-    T(n) = \Theta\left(\frac{n!}{2(n-2)!}\right)
-\end{equation}
+The naive and slowest method requires iterating through the entire catalog for our star $s$, then looping through the
+entire catalog again for stars that are near $s$.
+For $n$ elements in our catalog, this means our time complexity is $T(n) = O\left( n^2 \right)$.
 
 Steps (1), (3), and (4) involve searching through lists, which may hold billions of elements.
-Combinatorial complexity with a large dataset means that our catalog queries will be slow.
+$O\left(n^2\right)$ complexity with a large dataset means that our catalog queries will be slow.
 There are a few ways to get around this, the most effective being reducing the dataset to fit one's problem better.
-If this option is not available, then we must turn to storing and accessing our catalog data differently.
+The option explored here is rethinking our data model to access the catalog data more efficiently.
 
 In this paper, we stem away from the traditional RDBMS (relational database management system) approach to this
 problem and look toward \textit{distributed} no-SQL solutions.

@@ -1,21 +1,70 @@
 \section{Methods}\label{sec:methods}
-\subsection{Tycho2 Dataset}\label{subsec:tycho2Dataset}
-The dataset used for all queries in this paper comes from the Tycho-2 dataset.
+The goal of this research was to characterize the running time of various queries under different data models, indices,
+and architecture.
 
-
-All experiments were performed on three node clusters, with each machine of type \texttt{n1-standard-1} (1 virtual CPU,
+All experiments were performed on 1--3 node clusters, with each machine of type \texttt{n1-standard-1} (2 virtual CPUs,
 3.75GB of memory).
-The dataset used is the ..
+To maximize the role of the cache (both OS and DBMS), each query set of the list in~\autoref{subsec:queries} was ran
+45 times.
+The last 15 runs were sampled and represents the data in~\autoref{sec:results}.
 
-\subsection{Schema and Clustering}\label{subsec:schema}
-Each star will have their Tycho IDs, current positions (right ascension, declination), proper motions, apparent
-magnitude, and corresponding error terms saved as attributes.
-The relationships between each star is their angular separation, only stored for stars that are within 10 degrees of
-one another.
+\subsection{Queries}\label{subsec:queries}
+Queries represent read operations on some DBMS\@.
+Write operations were not tested here, as stars are not added to this dataset.
+For simplicity, a star is defined as \textit{near} to another star if they share the same region.
+A star is \textit{naked-eye visible} if its \texttt{BTmag} field (apparent magnitude) is below 6.0.
 
-Each system will be allocated three nodes.
+The following queries are to be examined:
+\begin{enumerate}
+    \item What are the characteristics of some star $s$?
+    \item Which stars are near some Equatorial position $(\alpha, \delta)$?
+    \item Which stars are near some star $s$, and what are their characteristics?
+    \item Which stars are near some Equatorial position $(\alpha, \delta)$, and are naked-eye visible?
+    \item Which stars are near some star $s$, and are naked-eye visible?
+\end{enumerate}
 
-\subsubsection{Neo4J}
+Query (1) is a singular element search across the entire database.
+Query (2) involves searching for some region that contains our point, and utilizing the data associated with the
+region to search for stars.
+This query can be approached two ways: computing the region ID given our point as application logic and searching with
+this ID, or by searching with the bounds fields associated with each region.
+
+Query (3) involves searching for all stars that share the same \texttt{TYC1} field.
+Neo4J has the additional option of traversing to the associated \textit{Region} node and walking each edge of the
+region.
+Queries (4) and (5) are similar to (2) and (3) with an additional brightness filter.
+
+\subsection{Cassandra}\label{subsec:cassandra}
+For the first query in~\autoref{subsec:queries}, we are given the exact \texttt{TYC1-TYC2-TYC3} ID and are told to
+search for all attributes associated with this star.
+Given that our primary key involves this ID, all Cassandra has to run these numbers through the same hash function
+used to partition the data, issue the query, and return the results.
+
+The second query gives us some position instead of the \texttt{TYC} ID\@.
+Our first approach (denoted as Query 2A) is to treat our column family as a relational table.
+This involves searching with each primary key in our column family, and asking for the \texttt{InRegion} field
+if~\autoref{eq:isWithinRegion} holds:
+\begin{equation}\label{eq:isWithinRegion}
+    \left(\texttt{RAmin} < \alpha < \texttt{RAmax}\right) \land \left(\texttt{DEmin} < \delta < \texttt{DEmax}\right)
+\end{equation}
+From here, we search for all stars contained in the resultant of the previous query and return the result.
+
+An alternative that avoids iterating through each primary key is to determine \texttt{TYC1} before asking Cassandra.
+This is denoted as (Query 2B).
+Query 2B involves iterating through a copy of the region data on the querying node, and checking for the region where
+~\autoref{eq:isWithinRegion} holds.
+From here, we perform the same secondary step as Query 2A\@.
+A region of interest here is if this exchange for speed results in a noticeable decrease in time.
+
+The third query in~\autoref{subsec:queries} takes advantage of our definition of near.
+Here, we can just search for all stars sharing the same \texttt{TYC1}.
+
+The fourth and fifth queries involve applying
+
+\subsection{Neo4J}\label{subsec:neo4j}
+The first query in~\autoref{subsec:queries} is a search across the entire node list for a singular element.
+This is tested with and without an index
+
 Representing the specified scheme above is natural if we treat each star as a node, each attribute as an attribute
 of the node, and each relationship as an edge between each close star.
 
@@ -73,6 +122,4 @@ The schema for the stars table is below:
 
 
 
-\subsection{Queries}\label{subsec:queries}
-% A key search. Given the star identifier, which star
 
