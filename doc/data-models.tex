@@ -11,6 +11,15 @@ Interaction between this model involves the use of relational algebra.
 In terms of distributed relational DBMSs, most implementations are consistent, available but not partition tolerant.
 
 \subsection{Column Family Data Model}\label{subsec:columnFamilyDataModel}
+\begin{figure}
+    \centering{\includegraphics[scale=0.5]{images/cassandra-data-model.png}}
+    \caption{Depiction of data model used with Cassandra.
+    There exists a \textit{Stars} column family indexed by \texttt{TYC1, TYC2, TYC3}, and a \textit{Regions} column
+    family indexed by \texttt{TYC1}.
+    The \textit{Regions} family has a list of \texttt{TYC} IDs of stars contained in that region.}
+    \label{fig:cassandraDataModel}
+\end{figure}
+
 The column family data model can be loosely thought of as the segmentation of a relational table into several two
 column tables consisting of a single attribute of the original table and a primary key based off this attribute.
 These segmented tables can then be grouped into a column family, which represents a group of columns indexed by the
@@ -40,6 +49,7 @@ The \textit{Stars} family has six columns:
 \end{multicols}
 where the first three columns represent the star's ID, \texttt{RAmdeg, DEmdeg} represent the star's position, and
 \texttt{BTmag} represents the magnitude of the star.
+This is depicted in~\autoref{fig:cassandraDataModel}.
 The primary key for this family is the GSC region \texttt{TYC1}, with \texttt{TYC2, TYC3} as secondary clustering
 keys.
 Efficient queries for stars should involve the primary key \texttt{TYC1}.
@@ -61,11 +71,18 @@ that region.
 Each region's primary key is the \textit{TYC1} region ID, and it follows that efficient region queries will use only
 the primary key.
 
-To query for all attributes of stars within a region, we first query for the \texttt{InRegion} column in the
-\textit{Region} family given the \texttt{TYC1}.
-Every star returned from this query is then used to search all columns of the \textit{Stars} family.
+%To query for all attributes of stars within a region, we first query for the \texttt{InRegion} column in the
+%\textit{Region} family given the \texttt{TYC1}.
+%Every star returned from this query is then used to search all columns of the \textit{Stars} family.
 
 \subsection{Graph Data Model}\label{subsec:graphDataModel}
+\begin{figure}
+    \centering{\includegraphics[scale=0.5]{images/neo4j-data-model.png}}
+    \caption{Depiction of data model used with Neo4J.
+    There exists a collection of \textit{Star} nodes and \textit{Region} nodes, each of which are related by the
+    \texttt{WITHIN} relationship.}
+\end{figure}
+
 Relative to the relational data model, the graph data model focuses on the relationship between various tuples.
 Here data is stored in nodes as attributes, and relationships are stored as edges between nodes.
 Data is accessed by simply traversing the graph.
@@ -81,6 +98,6 @@ A \textit{Star} node has the same attributes as the columns in the Cassandra \te
 \texttt{InRegion} column.
 Instead, a \texttt{WITHIN} relationship is established between all \textit{Star} nodes that exist in Region.
 
-To query for all attributes for a star within a region, we first search for the \textit{Region} node that matches
-some \texttt{TYC1} ID\@.
-The next step involves traversing all \texttt{WITHIN} edges to each \textit{Star} node and returning the attributes.
+%To query for all attributes for a star within a region, we first search for the \textit{Region} node that matches
+%some \texttt{TYC1} ID\@.
+%The next step involves traversing all \texttt{WITHIN} edges to each \textit{Star} node and returning the attributes.

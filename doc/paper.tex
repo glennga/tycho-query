@@ -1,7 +1,7 @@
 \documentclass[conference]{IEEEtran}
 
 \usepackage{amsmath} \usepackage{graphicx} \usepackage{stfloats} \usepackage{hyperref} \usepackage{caption}
-\usepackage{multicol}
+\usepackage{multicol} \usepackage{natbib}
 
 \title{An Empirical Evaluation of Neo4J and Apache Cassandra for Astronomical Spatial Queries}
 \author{Glenn Galvizo \\ University of Hawaii at Manoa} \date{\today}
@@ -16,5 +16,9 @@
     \input{methods.tex}
     \input{results.tex}
     \input{conclusion.tex}
+
+    \nocite{*}
+    \bibliographystyle{unsrt}
+    \bibliography{references}
 
 \end{document}
