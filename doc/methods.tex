@@ -4,7 +4,7 @@ and architecture.
 
 All experiments were performed on 1--3 node clusters, with each machine of type \texttt{n1-standard-1} (2 virtual CPUs,
 3.75GB of memory).
-To maximize the role of the cache (both OS and DBMS), each query set of the list in~\autoref{subsec:queries} was ran
+To normalize the role of the cache (both OS and DBMS), each query set of the list in~\autoref{subsec:queries} was ran
 45 times.
 The last 15 runs were sampled and represents the data in~\autoref{sec:results}.
 The repository that holds all code and data associated with this project can be found at:
@@ -31,14 +31,19 @@ Query (2) involves searching for some region that contains our point, and utiliz
 region to search for stars.
 This query can be approached two ways: computing the region ID given our point as application logic and searching with
 this ID, or by searching with the bounds fields associated with each region.
-
 Query (3) involves searching for all stars that share the same \texttt{TYC1} field.
 Neo4J has the additional option of traversing to the associated \textit{Region} node and walking each edge of the
 region.
 Queries (4) and (5) are similar to (2) and (3) with an additional brightness filter.
 
+Each general query was translated into 22 different queries for specific stars or locations.
+When referencing the time to execute query 1 or 2, we mean the time to execute any of one the specific queries for
+query set 1 or 2 on average.
+
 \subsection{Cassandra}\label{subsec:cassandra}
-The multi-node Cassandra clusters were configured with a \textit{Simple Snitch}, a replication factor = 3, and \texttt{num\textunderscore tokens} = 256.
+The multi-node Cassandra clusters were configured with a \textit{Simple Snitch}, a replication factor = 3, and
+\texttt{num\textunderscore tokens} = 256.
+No other changes were made to the default configuration.
 A snitch informs Cassandra about network topology for request efficiency, and the current configuration
 is recommended for single-datacenter deployments.
 Replication factor describes how many copies of the data exist, and \texttt{num\textunderscore tokens} determines
@@ -52,12 +57,12 @@ into the result of the second, and execute this query was recorded.
 
 For the first query in~\autoref{subsec:queries}, we are given the exact \texttt{TYC1-TYC2-TYC3} ID and are told to
 search for all attributes associated with this star.
-Given that our primary key involves this ID, all Cassandra has to run these numbers through the same hash function
+Given that our primary key involves this ID, all Cassandra has to do is run these numbers through the same hash function
 used to partition the data, issue the query, and return the results.
 
 The second query gives us some position instead of the \texttt{TYC} ID\@.
 Our first approach (denoted as Query 2A) is to treat our column family as a relational table.
-This involves searching with each primary key in our column family, and asking for the \texttt{InRegion} field
+This involves searching for each "row" in our column family, and returning the \texttt{InRegion} field
 if~\autoref{eq:isWithinRegion} holds:
 \begin{equation}\label{eq:isWithinRegion}
     \left(\texttt{RAmin} < \alpha < \texttt{RAmax}\right) \land \left(\texttt{DEmin} < \delta < \texttt{DEmax}\right)
@@ -69,32 +74,33 @@ This is denoted as (Query 2B).
 Query 2B involves iterating through a copy of the region data on the querying node, and checking for the region where
 ~\autoref{eq:isWithinRegion} holds.
 From here, we perform the same secondary step as Query 2A\@.
-A region of interest here is if this exchange for space results in a noticeable decrease in time.
+A question of interest here is if this exchange for space results in a noticeable decrease in time.
 
 Cassandra's third query takes advantage of our definition of near.
 Here, we can just search for all stars sharing the same \texttt{TYC1}.
 The fourth and fifth queries involve applying the naked-eye visibility filter to queries 2 and 3.
-An area of interest here is to see how an index on \texttt{BTmag} affects the speed of our query.
+Another question of interest is how a \texttt{BTmag} index affects the speed of our query.
 
 \subsection{Neo4J}\label{subsec:neo4j}
 The multi-node Neo4J clusters were configured as \textit{Causal}, and all queries were performed on
 the leader node.
+No other changes were made to the default configuration.
 All queries are to be executed serially, operating within the same session.
 
 The first query in~\autoref{subsec:queries} is a search across the entire node list for a singular element given the
 \texttt{TYC} ID\@.
-This is to be tested with and without an index on \texttt{TYC1-TYC2-TYC3}, to determine how large the speedup is.
+This is to be tested with and without an index on \texttt{TYC1}, to determine how large the speedup is.
 
 For the second query, we are given some position instead of the star ID itself.
-The first approach, in line with Cassandra's 2A query, starts by searching for regions such
+The first approach, similar to Cassandra's 2A query, starts by searching for regions such
 that~\autoref{eq:isWithinRegion} holds.
-With the region known, we then traverse each \texttt{WITHIN} edge connected and return the properties of each
+With the region known, we then traverse each connected \texttt{WITHIN} edge and return the properties of each
 \textit{Star} node.
 
 In line with Cassandra's 2B query, we also try to see if the same space exchange results in query speedup.
 Neo4J's 2B query involves computing the \texttt{TYC1} ID in the same manner as Cassandra's query, but
-then traverse the edges of the region node and returns the properties of each \textit{Star} node once found.
-A region of interest here is to determine how a \texttt{TYC1} index affects Neo4J's 2B query.
+then traversing the edges of the region node and returning the properties of each \textit{Star} node once found.
+A question of interest here is how a \texttt{TYC1} index affects Neo4J's 2B query.
 
 In the third query, we are tasked with finding the properties of stars near some star defined by its \texttt{TYC} ID\@.
 The first approach (Query 3A) involves a similar query to Cassandra: search for all stars sharing the same
@@ -102,11 +108,10 @@ The first approach (Query 3A) involves a similar query to Cassandra: search for 
 This is to be analyzed with and without indexes on \texttt{TYC1}.
 
 The second approach (Query 3B) involves searching modeling the query in terms of relationships.
-First, we search some star $s_0$ given the \texttt{TYC} ID\@.
-Next, we traverse the \texttt{WITHIN} edge to find our region.
+First, we search some star given the \texttt{TYC} ID\@.
+Next, we traverse the connected \texttt{WITHIN} edge to find our region.
 Finally, we traverse each \texttt{WITHIN} edge connected to our region and return the properties of each star.
-Again, this is to be tested with and without a \texttt{TYC} index.
+Again, this is to be tested with and without a \texttt{TYC1} index.
 
 The fourth and fifth queries are variants of queries 2 and 3 with the naked-eye visibility filter.
-Similar to the Cassandra queries, an area of interest here is to see how an index on \texttt{BTmag} affects the
-query time.
+Similar to the Cassandra queries, a question of interest is how a \texttt{BTmag} index affects the query time.

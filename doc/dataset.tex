@@ -13,14 +13,13 @@ existing catalogs.
 This dataset is available at~\url{ftp://cdsarc.u-strasbg.fr/pub/cats/I/259}.
 
 Typical star catalogs hold stars as points projected onto a 2D map of space known as the celestial sphere.
-Each point is recorded as a 2D vector ($\alpha, \delta$) in a coordinate system known as the \textit{Equatorial
-coordinate system}.
+Each point is recorded as a vector ($\alpha, \delta$) in the \textit{Equatorial coordinate system}.
 $\alpha$ represents right ascension, which is the celestial equivalent of longitude on Earth.
 $\delta$ represents declination, which is the celestial equivalent of latitude.
-~\autoref{fig:tycho} depicts a heat map of all the stars inside its catalog.
+~\autoref{fig:tycho} depicts a heat map of the stars inside the catalog, and is meant to illustrate how positions of stars are recorded.
 
 There exist two main sections of interest here: the catalog files, and the index file.
-The catalog files hold each star (or astronomical object), their astrometric properties, and their 3-digit \texttt{TYC}
+The catalog files hold each star (or astronomical object), their astrometric properties, and their 3-number \texttt{TYC}
 ID\@.
 This is formatted as such:
 \begin{alignat*}{3}
@@ -31,12 +30,13 @@ This is formatted as such:
 Each \texttt{TYC1}, or \textit{GSC Region Number} corresponds to a specific region in space.
 Region here, refers to a section on the celestial sphere.
 Every GSC Region corresponds to, at most, a $3.75^\circ \times 3.75^\circ$ region of the sky.
-The running number corresponds to a star inside that region, and the component identifier which is typically equal to 1.
+The running number corresponds to a star inside that region, and the component identifier indicates how many stars
+exist in that specific system (typically equal to 1).
 
 Also contained are the proper motions of each star, the epoch (time) associated with the current record, the apparent
 magnitude (brightness), and errors associated with all of the former.
 For the queries tested here only the apparent magnitude, the $(\alpha, \delta)$, and the \texttt{TYC} IDs were recorded
-with each.
+with each entry.
 
 The index file is sorted by \texttt{TYC1}, and holds the bounds representing each region $\left(\alpha_{min},
 \alpha_{max}\right), \left(\delta_{min}, \delta_{max}\right)$.

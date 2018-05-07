@@ -1,4 +1,9 @@
 \begin{abstract}
-Astrom
-
+Asking "What are stars are near $S$?" is a problem that may involve iterating through millions, if not billions of
+stars.
+The Tycho-2 dataset allows us to reduce our search to sky regions instead of the entire star set.
+The time to answer similar questions using the distributed column family database Cassandra, was benchmarked against
+the distributed graph database Neo4J\@.
+Overall, Cassandra's query times are more tightly distributed than Neo4J times but Neo4J is able to process queries
+faster if the correct indexes are applied.
 \end{abstract}

@@ -1,2 +1,48 @@
 \section{Conclusion}\label{sec:conclusion}
-asd
+\subsection{Future Work}\label{subsec:futureWork}
+Future work for this project includes running more query variants, modifying each DBMS architecture more, and
+analyzing the execution plan more.
+
+A large assumption that helped simplify our queries was our definition of \textit{near}.
+Sometimes, near might involve the angular separation between two stars that span over several GSC regions.
+As our current data models stand, this would involve iterating through each star family / node set twice at worst.
+The optimizations used here would not apply to this problem, and we would have to approach an entirely different data
+model.
+ 
+Clusters of 1, 2, and 3 nodes at the same datacenter were used for each DBMS due to cost limitations.
+With our current results, it seems that Neo4J should not scale out well and Cassandra should accept more nodes without
+a problem.
+Using more nodes across different regions would determine how well Neo4J and Cassandra really scale out.
+Queries were also executed serially, and more interesting results may have been seen if multiple were run in parallel.
+Both Neo4J and Cassandra provide availability, and characterizing this would also allow us to test each DBMS's
+distributed nature.
+
+Query plans were briefly looked at for the non-indexed Neo4J cluster running queries 1, 3A, and 5A\@.
+Cassandra does provide an execution planner, and could be compared against Neo4J\@.
+Query plans would provide more concrete insight into why certain queries run faster than others.
+Delving deeper, more explicit analysis could be performed by characterizing the role of the cache for each query 
+(cache misses or hits) or tracking the messages sent to each node. 
+
+\subsection{Conclusion}\label{subsec:conclusion}
+Finding nearby stars is a common stellar query: in star trackers, identifying poorly cataloged images, celestial
+navigation\ldots
+Unfortunately there are hundreds of millions recorded stars, and the problem becomes finding nearby stars in an
+efficient manner.
+Stars are recorded as 2D points on the celestial sphere in an astronomical catalog known as a star catalog.
+The Tycho-2 star catalog allows us to reduce this spatial query to finding stars that are contained within a specific
+region on the sphere.
+
+From here, we divided our approach in two: the Cassandra solution with \textit{Region} and \textit{Star} column
+families, and the Neo4J solution with \textit{Region} nodes, \textit{Star} nodes, and \texttt{WITHIN} relationships.
+The former is known for efficient, but restrictive queries.
+The latter is known for its efficient relational queries, but also its inability to partition work like a column family.
+
+Our results show that Cassandra runs faster when Neo4J is not indexed, but Neo4J is able to run just as efficiently
+(in some cases, more) when the correct indexes are applied.
+Cassandra queries benefit from taking the time to determine the primary key before asking Cassandra (time-space
+tradeoff), instead of performing an exhaustive search on Cassandra itself.
+Neo4J does not experiment this same performance boost.
+Finally, Cassandra appears to perform the same under a change in cluster size while Neo4J does not.
+
+For consistent performance, Cassandra should be selected.
+For a more natural abstraction with a higher upper bound on performance, Neo4J should be selected.

@@ -1,33 +1,32 @@
 \section{Introduction}\label{sec:introduction}
 A cursory glance of a clear night sky reveals roughly thousands of stars.
-There is in fact, billions more stars that the human eye cannot see.
+There are in fact, billions more stars that the human eye cannot see.
 Answering "Which stars are which when one looks up into the sky?" is a very active field of research, particularly
 making this faster.
 
-Positional astronomy, or \textit{astrometry} is a branch of astronomy that involves determining where celestial
+\textit{Astrometry} is a branch of astronomy that involves determining where celestial
 bodies lie at a given time.
 A seemingly innocent and basic question we can ask involving astrometry is "What stars do we see near some star $S$?"
 The steps we take to answer this are as follows:
 \begin{enumerate}
     \item Finding some known catalog of stars, that includes the star $S$.
     \item Computing the angular separation between star $S$ and each star in the catalog.
-    \item Filtering out the stars whose angular separation does not meet the criteria of "near".
+    \item Filtering out stars that do not meet the criteria of "near".
     \item Applying an additional filter of brightness, removing stars that we cannot see from Earth.
     \item Presenting the resultant.
 \end{enumerate}
 
-The naive and slowest method requires iterating through the entire catalog for our star $s$, then looping through the
-entire catalog again for stars that are near $s$.
+The naive and slowest method requires iterating through the entire catalog for our star $S$, then looping through the
+entire catalog again for stars that are near $S$.
 For $n$ elements in our catalog, this means our time complexity is $T(n) = O\left( n^2 \right)$.
 
 Steps (1), (3), and (4) involve searching through lists, which may hold billions of elements.
-$O\left(n^2\right)$ complexity with a large dataset means that our catalog queries will be slow.
-There are a few ways to get around this, the most effective being reducing the dataset to fit one's problem better.
-The option explored here is rethinking our data model to access the catalog data more efficiently.
+$O\left(n^2\right)$ complexity with a large dataset is inefficient, suggesting that our catalog queries will be slow.
+There are a few ways to get around this (the most effective being reducing the dataset itself to fit the problem
+better), but the option explored here is rethinking our data model to access the catalog data more efficiently.
 
 In this paper, we stem away from the traditional RDBMS (relational database management system) approach to this
 problem and look toward \textit{distributed} no-SQL solutions.
-In particular, we look at the graph DBMS solution of Neo4J and the column store solution with Apache Cassandra.
+In particular, we analyze the graph DBMS solution of Neo4J and the column family solution with Apache Cassandra.
 This research aims to contribute several benchmarks for astronomical querying systems (star trackers, astrometry
-research), as well as some characterization of using graph and column store data models for data access instead of
-the traditional relational model.
+research), as well as some characterization of using graph and column family data models for data access.

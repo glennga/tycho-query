@@ -1,14 +1,14 @@
 \section{Data Models}\label{sec:dataModels}
-Given the Tycho2 catalog of stars, how can we model our data our data for efficient spatial queries?
+Given the Tycho-2 catalog of stars, how can we model our data our data for efficient spatial queries?
 
 \subsection{Relational Data Model}\label{subsec:relationalDataModel}
 The relational data model is the most popular data abstraction, and arguably the most natural.
 Here data is stored in tuples.
 The schema is defined before data is added, meaning that each tuple of a given table has the same number of attributes.
-If thought of as a table, the number of columns is fixed by the number of tuples is variable.
+If thought of as a table, the number of columns is fixed while the number of tuples is variable.
 Interaction between this model involves the use of relational algebra.
 
-In terms of distributed relational DBMSs, most implementations are consistent, available but not partition tolerant.
+In terms of distributed relational DBMSs, most implementations are consistent, available, but not partition tolerant.
 
 \subsection{Column Family Data Model}\label{subsec:columnFamilyDataModel}
 \begin{figure}
@@ -28,12 +28,16 @@ This segmentation is useful for allowing denormalization, meaning that the schem
 data insertion and that each primary key does not have to map the same amount of columns as other keys.
 Column family models are known for this denormalization and efficient querying, accessing only the columns required for
 the query itself.
+Cons here include restrictive queries, as columns can only be accessed using their primary key.
 
 \textit{Apache Cassandra} is the column store database that is being tested here, and is a form of a
 \textit{distributed} DBMS\@.
 Cassandra itself is available and partition tolerant, but not consistent.
-Data in a Cassandra cluster is hash partitioned by the primary key, and these pieces can be replicated across the
-cluster as well.
+Data in a Cassandra cluster is hash partitioned by the primary key with the additional option of being replicated
+across the cluster.
+Without Cassandra's querying language CQL, queries with column families would have been restricted to only using the
+primary key.
+Using CQL queries can use non-primary key columns, but it is less efficient.
 
 The data model being implemented with Cassandra involves two column families: \textit{Regions} and \textit{Stars}.
 The \textit{Stars} family has six columns:
@@ -65,8 +69,8 @@ The \textit{Regions} family has six columns as well:
         \item[] \texttt{InRegion}
     \end{itemize}
 \end{multicols}
-where \texttt{TYC1} represents the region ID, \texttt{RAmin, RAmax} represent the right ascension limits,
-\texttt{DEmin, DEmax} represent the declination limits, and \texttt{InRegion} is a list of star IDs contained within
+where \texttt{TYC1} represents the region ID, (\texttt{RAmin, RAmax}) represent the right ascension limits,
+(\texttt{DEmin, DEmax}) represent the declination limits, and \texttt{InRegion} is a list of star IDs contained within
 that region.
 Each region's primary key is the \textit{TYC1} region ID, and it follows that efficient region queries will use only
 the primary key.
@@ -85,16 +89,18 @@ the primary key.
 
 Relative to the relational data model, the graph data model focuses on the relationship between various tuples.
 Here data is stored in nodes as attributes, and relationships are stored as edges between nodes.
-Data is accessed by simply traversing the graph.
+Data is accessed by searching for nodes or edges, and traversing the graph.
 Graph models shine in relationship querying and denormalization as opposed to a relational data model.
+Compared to the column family where data can easily be partitioned across nodes, a graph data model does not allow
+for the same amount of parallelism.
 
 \textit{Neo4J} is the graph database that is being tested here, and is also a form of a distributed DBMS\@.
 The Neo4J setup that was tested here is available and consistent (like typical RDBMS), but not partition tolerant.
-Data in a Neo4J cannot be partitioned like Cassandra, meaning that every node is a full replica.
+Because data in a Neo4J graph cannot be partitioned like Cassandra, every node is a full replica.
 
 The data model being implemented here involves two types of nodes: \textit{Region} and \textit{Star} nodes.
-A \textit{Star} node has the same attributes as the columns in the Cassandra \textit{Stars} column family.
-\textit{Regions} have all attributes in the columns of the \textit{Regions} column family except for the
+A \textit{Star} node has the same attributes as the columns in the Cassandra \textit{Stars} family.
+\textit{Regions} have all attributes in the columns of the \textit{Regions} family except for the
 \texttt{InRegion} column.
 Instead, a \texttt{WITHIN} relationship is established between all \textit{Star} nodes that exist in Region.
 
