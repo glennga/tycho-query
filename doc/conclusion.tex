@@ -6,7 +6,7 @@ analyzing the execution plan more.
 A large assumption that helped simplify our queries was our definition of \textit{near}.
 Sometimes, near might involve the angular separation between two stars that span over several GSC regions.
 As our current data models stand, this would involve iterating through each star family / node set twice at worst.
-The optimizations used here would not apply to this problem, and we would have to approach an entirely different data
+The optimizations used here would not apply to this problem, and we would have to use an entirely different data
 model.
  
 Clusters of 1, 2, and 3 nodes at the same datacenter were used for each DBMS due to cost limitations.
@@ -29,8 +29,8 @@ navigation\ldots
 Unfortunately there are hundreds of millions recorded stars, and the problem becomes finding nearby stars in an
 efficient manner.
 Stars are recorded as 2D points on the celestial sphere in an astronomical catalog known as a star catalog.
-The Tycho-2 star catalog allows us to reduce this spatial query to finding stars that are contained within a specific
-region on the sphere.
+Using the Tycho-2 star catalog allowed us to reduce this spatial query to finding stars that are contained
+within a specific region on the sphere.
 
 From here, we divided our approach in two: the Cassandra solution with \textit{Region} and \textit{Star} column
 families, and the Neo4J solution with \textit{Region} nodes, \textit{Star} nodes, and \texttt{WITHIN} relationships.

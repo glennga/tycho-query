@@ -1,17 +1,416 @@
-%%
-%% Author: glenn
-%% 5/6/18
-%%
-
-% Preamble
 \documentclass[11pt]{article}
 
-% Packages
-\usepackage{a4wide}
+\usepackage{a4wide} \usepackage{hyperref} \usepackage{listings, lstautogobble} \usepackage{xcolor} \usepackage{array}
+\usepackage{amsmath}
 
-% Document
+\title{Benchmark Specification: Neo4J vs. Apache Cassandra for Astronomical Spatial Queries}
+\author{Glenn Galvizo \\ University of Hawaii at Manoa} \date{\today}
+
+\lstset{
+    language=SQL,
+    basicstyle=\scriptsize\ttfamily,
+    commentstyle=\ttfamily\itshape\color{gray},
+    stringstyle=\ttfamily,
+    showstringspaces=false,
+    breaklines=true,
+    frameround=ffff,
+%    frame=single,
+%    rulecolor=\color{black},
+    autogobble=true
+}
+
 \begin{document}
+    \maketitle
 
+    \section{Introduction}\label{sec:introduction}
+    This benchmark is meant to characterize astronomical spatial queries on the column family implementation Apache
+    Cassandra and the graph store implementation Neo4J\@.
 
+    The repository that holds the paper and code associated with this benchmark can be found
+    at~\url{https://github.com/glennga/tycho-query}.
+
+    \section{Tycho-2 Dataset}\label{sec:tycho-2Dataset}
+    This benchmark uses the Tycho-2 dataset, which can be found at~\url{ftp://cdsarc.u-strasbg.fr/pub/cats/I/259}.
+    The bulk of the Tycho-2 star catalog comes from the ESA (European Space Agency) astrometric mission Hipparcos.
+    There exists three different types of files of interest: \texttt{index.dat.gz}, \texttt{supp\_X.dat.gz}, and
+    \texttt{tyc2.dat.XX.gz}.
+
+    The first file represents the index file, and holds all GSC regions with their associated Tycho ID (\texttt{TYC1}),
+    right ascension bounds, and declination bounds.
+    The second file type represents the supplement files and holds all stars that could not be characterized
+    reliably (due to brightness or unreliable measurements).
+    This file holds the Tycho IDs of each star, their positions $(\alpha, \delta)$, their apparent magnitude, and
+    the errors associated with each of the former.
+    The third file type holds all of the stars that can be characterized reliably.
+    In addition to the data recorded in the supplement files, these files also hold the epoch and error associated with
+    the given measurement.
+
+    This benchmark only uses the right ascension and declination associated data, and the apparent magnitude.
+
+    \section{Neo4J Configuration}\label{sec:neo4jConfiguration}
+    For the Neo4J DBMS, the files were loaded in order of supplement, regular, index.
+
+    \subsection{Supplement and Regular Loading}\label{subsec:supplementAndRegularLoading}
+    Each entry in the supplement and regular files were iterated through, and the following Cypher statements
+    were executed.
+    Entries with missing fields (i.e.\ non-stars) were not inserted.
+    The items with the curly braces  (e.g. \texttt{\{ TYC1 \}}) represent the corresponding fields of that
+    specific star.
+
+    The following statements were executed once.
+    \begin{lstlisting}
+        // Create an index for star and regions nodes based on their TYC ID.
+        CREATE INDEX ON :Star(TYC1, TYC2, TYC3);
+        CREATE INDEX ON :Region(TYC1);
+    \end{lstlisting}
+
+    The following statements were executed for every star.
+    \begin{lstlisting}
+        // Insert the star node into the graph.
+        CREATE (s:Star {
+            TYC1: {TYC1},
+            TYC2: {TYC2},
+            TYC3: {TYC3},
+            RAmdeg: {RAmdeg},
+            DEmdeg: {DEmdeg},
+            BTmag: {BTmag}
+        });
+
+        //  Create the region node in the graph if it does not already exist.
+        MERGE (a:Region {
+           TYC1: {TYC1}
+        });
+
+        // Create the appropriate relationship between the star and region node.
+        MATCH (s:Star), (a:Region) WHERE
+            s.TYC1 = {TYC1} AND
+            s.TYC2 = {TYC2} AND
+            s.TYC3 = {TYC3} AND
+            a.TYC1 = {TYC1}
+        CREATE (a)-[:CONTAINS]->(s);
+    \end{lstlisting}
+
+    \subsection{Index Loading}\label{subsec:indexLoading}
+    Each entry in the index file was iterated through, and the following Cypher statement was executed.
+    The \texttt{TYC1} property corresponds to its line number in the data file.
+
+    This finds the region node created in~\autoref{subsec:supplementAndRegularLoading} and adds the appropriate
+    right ascension and declination bounds as node properties:
+    \begin{lstlisting}
+        MATCH (a:Region {
+            TYC1: {TYC1}
+        }) SET a.RAmin = {RAmin}, a.RAmax = {RAmax}, a.DEmin = {DEmin}, a.DEmax = {DEmax};
+    \end{lstlisting}
+
+    Tests were performed with and without the indexes applied in~\autoref{subsec:supplementAndRegularLoading}.
+    To delete these indexes, the following Cypher statements were executed.
+    \begin{lstlisting}
+        DROP INDEX ON :Star(TYC1, TYC2, TYC3);
+        DROP INDEX ON :Region(TYC1);
+    \end{lstlisting}
+
+    \section{Cassandra Configuration}\label{sec:cassandraConfiguration}
+    For the Apache Cassandra DBMS, the files were loaded in order of: index, supplement, regular.
+
+    \subsection{Index Loading}\label{subsec:indexLoading2}
+    Each entry in the index file was iterated through, and the following CQL statements were executed.
+    The \texttt{TYC1} property corresponds to its line number in the data file.
+    The \texttt{?} marks in the statements below indicate where the specific information of each region should be
+    bound to.
+
+    The following statements were executed once.
+    \begin{lstlisting}
+        ; Create the Tycho keyspace.
+        CREATE KEYSPACE IF NOT EXISTS tycho
+        WITH REPLICATION = {
+            'class': 'SimpleStrategy',
+            'replication_factor': '3'
+        };
+
+        ; Create the Region column family.
+        CREATE TABLE IF NOT EXISTS tycho.region (
+            TYC1 int,
+            RAmin float,
+            RAmax float,
+            DEmin float,
+            DEmax float,
+            PRIMARY KEY (TYC1)
+        );
+    \end{lstlisting}
+
+    The following statement was executed for every region.
+    \begin{lstlisting}
+        INSERT INTO tycho.region (
+            TYC1, RAmin, RAmax, DEmin, DEmax
+        ) VALUES (?, ?, ?, ?, ?);
+    \end{lstlisting}
+
+    \subsection{Supplement and Regular Loading}\label{subsec:supplementAndRegularLoading2}
+    Each entry in the supplement and regular files were iterated through, and the following CQL statements
+    were executed.
+    Entries with missing fields (i.e.\ non-stars) were not inserted.
+
+    The following statement was executed once.
+    \begin{lstlisting}
+        CREATE TABLE IF NOT EXISTS tycho.stars (
+            TYC1 int,
+            TYC2 int,
+            TYC3 int,
+            RAmdeg float,
+            DEmdeg float,
+            BTmag float,
+            PRIMARY KEY (TYC1, TYC2, TYC3)
+        );
+    \end{lstlisting}
+
+    The following statement was executed for each star in the data file.
+    \begin{lstlisting}
+        INSERT INTO tycho.stars (
+            TYC1, TYC2, TYC3, RAmdeg, DEmdeg, BTmag
+        ) VALUES (?, ?, ?, ?, ?, ?);
+    \end{lstlisting}
+
+    \section{Queries}\label{sec:queries}
+    For each query listed in the following sections, the 22 stars in~\autoref{tab:starsInQueries} were used.
+    One random star was selected from each data file to cover as much of the sky as possible.
+
+    \section{Query 1}\label{sec:query1}
+    The first query in this benchmark set asks what the characteristics are of some star $S$ given
+    \texttt{TYC1-TYC2-TYC3}.
+
+    \subsection{Cassandra Query 1}\label{subsec:cassandraQuery1}
+    The following CQL was executed.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ? AND TYC2 = ? AND TYC3 = ?;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 1}\label{subsec:neo4jQuery1}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)
+        WHERE s.TYC1 = {TYC1} AND s.TYC2 = {TYC2} AND s.TYC3 = {TYC3}
+        RETURN s;
+    \end{lstlisting}
+
+    \section{Query 2}\label{sec:query2}
+    The second query asks what are the characteristics of stars near some star $s$ given $(\alpha, \delta)$.
+    There exists two variants here: one that searches using the given position, and another searches for the
+    \texttt{TYC1} ID after finding this in application logic.
+
+    \subsection{Cassandra Query 2A}\label{subsec:cassandraQuery2a}
+    Cassandra does not allow subqueries, so the results of the first query were fed into the results of the second.
+
+    Search for the region given the position.
+    \begin{lstlisting}
+        SELECT TYC1
+        FROM tycho.region
+        WHERE RAmin < ? AND RAmax > ? AND DEmin < ? AND DEmax > ?
+        ALLOW FILTERING;
+    \end{lstlisting}
+
+    Search for stars that share this region number.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ?;
+    \end{lstlisting}
+
+    \subsection{Cassandra Query 2B}\label{subsec:cassandraQuery2b}
+    The operation to find the \texttt{TYC1} ID was done outside of Cassandra.
+
+    The following was performed in application logic.
+    \begin{lstlisting}
+        for each entry in the index file:
+            if the current point is within the bounds:
+                return TYC1
+    \end{lstlisting}
+
+    The results of the previous operation was then fed into the following CQL\@.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ?
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 2A}\label{subsec:neo4jQuery2a}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)-[:CONTAINS]-(a:Region)
+        WHERE {RAmdeg} > a.RAmin AND {RAmdeg} < a.RAmax AND
+              {DEmdeg} > a.DEmin AND {DEmdeg} < a.DEmax
+        RETURN s;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 2B}\label{subsec:neo4jQuery2b}
+    The following was performed in application logic.
+    \begin{lstlisting}
+        for each entry in the index file:
+            if the current point is within the bounds:
+                return TYC1
+    \end{lstlisting}
+
+    The results of the previous operation was then fed into the following Cypher.
+    \begin{lstlisting}
+        MATCH (s:Star)-[:CONTAINS]-(a:Region)
+        WHERE a.TYC1 = {TYC1}
+        RETURN s;
+    \end{lstlisting}
+
+    \section{Query 3}\label{sec:query3}
+    The second query asks what are the characteristics of stars near some star $s$ given \texttt{TYC1-TYC2-TYC3}.
+    There exists two variants for Neo4J: one that searches using only \texttt{TYC1} and one that searches for
+    the specific star, traverses to the region node, and returns all stars associated with the given region.
+    Cassandra can only perform the first variant.
+
+    \subsection{Cassandra Query 3}\label{subsec:cassandraQuery3}
+    The following CQL was executed.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ?;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 3A}\label{subsec:neo4jQuery3a}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)
+        WHERE s.TYC1 = {TYC1}
+        RETURN s;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 3B}\label{subsec:neo4jQuery3b}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)-[:CONTAINS]-(a:Region), (z:Star)-[:CONTAINS]-(a:Region)
+        WHERE s.TYC1 = {TYC1} AND s.TYC2 = {TYC2} AND s.TYC3 = {TYC3}
+        RETURN s;
+    \end{lstlisting}
+
+    \section{Query 4}\label{sec:query4}
+    The fourth query is identical to the second query with the inclusion of a brightness filter.
+
+    \subsection{Cassandra Query 4A}\label{subsec:cassandraQuery4a}
+    The following operations were performed.
+
+    Search for the region given the position.
+    \begin{lstlisting}
+        SELECT TYC1
+        FROM tycho.region
+        WHERE RAmin < ? AND RAmax > ? AND DEmin < ? AND DEmax > ?
+        ALLOW FILTERING;
+    \end{lstlisting}
+
+    Search for stars that share this region number and are visible with the naked eye.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ? AND BTmag < 6.0;
+    \end{lstlisting}
+
+    \subsection{Cassandra Query 4B}\label{subsec:cassandraQuery4b}
+    The operation to find the \texttt{TYC1} ID was done outside of Cassandra.
+
+    The following was performed in application logic.
+    \begin{lstlisting}
+        for each entry in the index file:
+            if the current point is within the bounds:
+                return TYC1
+    \end{lstlisting}
+
+    The results of the previous operation was then fed into the following CQL\@.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ? AND BTmag < 6.0;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 4A}\label{subsec:neo4jQuery4a}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)-[:CONTAINS]-(a:Region)
+        WHERE {RAmdeg} > a.RAmin AND {RAmdeg} < a.RAmax AND
+              {DEmdeg} > a.DEmin AND {DEmdeg} < a.DEmax AND s.BTmag < 6.0
+        RETURN s;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 4B}\label{subsec:neo4jQuery4b}
+    The following was performed in application logic.
+    \begin{lstlisting}
+        for each entry in the index file:
+            if the current point is within the bounds:
+                return TYC1
+    \end{lstlisting}
+
+    The results of the previous operation was then fed into the following Cypher.
+    \begin{lstlisting}
+        MATCH (s:Star)-[:CONTAINS]-(a:Region)
+        WHERE a.TYC1 = {TYC1} AND s.BTmag < 6.0
+        RETURN s;
+    \end{lstlisting}
+
+    \section{Query 5}\label{sec:query5}
+    The fifth query is identical to thq third query with the inclusion of a brightness filter.
+
+    \subsection{Cassandra Query 5}\label{subsec:cassandraQuery5}
+    The following CQL was executed.
+    \begin{lstlisting}
+        SELECT *
+        FROM tycho.stars
+        WHERE TYC1 = ? AND BTmag < 6.0;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 5A}\label{subsec:neo4jQuery5a}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)
+        WHERE s.TYC1 = {TYC1} AND s.BTmag < 6.0
+        RETURN s;
+    \end{lstlisting}
+
+    \subsection{Neo4J Query 5B}\label{subsec:neo4jQuery5b}
+    The following Cypher was executed.
+    \begin{lstlisting}
+        MATCH (s:Star)-[:CONTAINS]-(a:Region), (z:Star)-[:CONTAINS]-(a:Region)
+        WHERE s.TYC1 = {TYC1} AND s.TYC2 = {TYC2} AND s.TYC3 = {TYC3} AND s.BTmag < 6.0
+        RETURN s;
+    \end{lstlisting}
+
+    \newpage
+    \section{Tables}\label{sec:tables}
+        \begin{table}[h]
+        \begin{center}
+            \caption{
+                List of all stars used in the query benchmark set.
+            } \label{tab:starsInQueries}
+            \begin{tabular}{ | m{0.3\linewidth} || m{0.3\linewidth} | m{0.3\linewidth} | }
+                \hline
+                \texttt{TYC} (catalog ID) & $\alpha$ (right ascension) & $\delta$ (declination) \\
+                \hline \hline
+                7018\ --- \ 01160\ --- \ 1 & 42.15935412 & -37.40235393 \\ \hline
+                4532\ --- \ 02097\ --- \ 1 & 137.90154007 & 3.77865571 \\ \hline
+                1034\ --- \ 00319\ --- \ 1 & 282.58271209 & 12.45930082 \\ \hline
+                1148\ --- \ 01117\ --- \ 1 & 331.36198727 & 13.53828805 \\ \hline
+                2112\ --- \ 00523\ --- \ 1 & 281.21247956 & 24.88268017 \\ \hline
+                2471\ --- \ 01181\ --- \ 1 & 118.18754314 & 33.51838673 \\ \hline
+                2936\ --- \ 00748\ --- \ 1 & 99.29161026 & 42.48758540 \\ \hline
+                3386\ --- \ 00618\ --- \ 1 & 90.46745900 & 51.50930653 \\ \hline
+                3875\ --- \ 01135\ --- \ 1 & 234.78965495 & 57.92442621 \\ \hline
+                4227\ --- \ 00513\ --- \ 1 & 279.44191249 & 66.86263037 \\ \hline
+                4896\ --- \ 00894\ --- \ 1 & 148.33662709 & -1.43938349 \\ \hline
+                4901\ --- \ 00347\ --- \ 1 & 146.54433880 & -5.03752100 \\ \hline
+                5980\ --- \ 01722\ --- \ 1 & 114.46513876 & -15.41866824 \\ \hline
+                6554\ --- \ 02717\ --- \ 1 & 120.06655070 & -23.66481696 \\ \hline
+                7120\ --- \ 01467\ --- \ 1 & 121.35783939 & -30.75622165 \\ \hline
+                7640\ --- \ 01105\ --- \ 1 & 103.68753589 & -44.35031024 \\ \hline
+                7899\ --- \ 00878\ --- \ 1 & 271.70230557 & -38.47822425 \\ \hline
+                8348\ --- \ 00133\ --- \ 1 & 269.98544312 & -47.58312166 \\ \hline
+                8717\ --- \ 02227\ --- \ 1 & 252.66602938 & -54.86935283 \\ \hline
+                9004\ --- \ 02476\ --- \ 1 & 205.84510966 & -60.58699498 \\ \hline
+                9537\ --- \ 00348\ --- \ 1 & 341.37590366 & -88.81829325 \\ \hline
+            \end{tabular}
+        \end{center}
+    \end{table}
 
 \end{document}

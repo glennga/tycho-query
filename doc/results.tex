@@ -21,7 +21,7 @@ For queries 2A and 4A, Neo4J performs an average of 0.88s faster than Cassandra.
 For queries 1, 3 (3A for Neo4J), and 5 (5A for Neo4J), Cassandra performs an average of 1.27s faster.
 Cassandra query 3 takes about the same time to run as Neo4J query 3A, at a difference of $\sim$7.9ms.
 
-Neo4J's significant change in running time from query 3A to 5A is interesting, as the only change that is made is
+Neo4J's significant change in running time from query 3A to 5A is interesting, as the only change made is
 applying a brightness filter.
 Running both query sets through Neo4J's query planner reveals that query 3A is \textit{compiled} and 5A is
 \textit{slotted}.
@@ -36,14 +36,14 @@ this difference in time.
 
 For both Cassandra and Neo4J, queries 2A, 4A, and 2B, 4B differ in their approach to determine the region our star is
 in.
-Reading a file containing the region data and determining our \texttt{TYC1} here instead of performing the exhaustive
-search on our \textit{Region} family does yield a time decrease of 0.87s.
+Reading a file containing the region data and determining our \texttt{TYC1} in application logic instead of
+performing the exhaustive search on our \textit{Region} family does yield a time decrease of 0.87s.
 For the non-indexed Neo4J, this approach has no significant effect on performance (average of 8.31ms increase).
 Given that no mechanisms are in place for Neo4J to take advantage of this, it makes sense that no speed up is shown.
 
 In Neo4J queries 3B and 5B, we vary our query to include the \textit{Region} node as opposed to their A variants.
 Both require a full search of the entire \textit{Star} node list, but the B queries require an additional traversal
-to the matching \textit{Region} node and additional hops to each \textit{Star} nodes.
+to the matching \textit{Region} node and additional hops to each \textit{Star} node.
 These additional steps suggest that the A queries should be faster, but the results are mixed.
 Our results show that query 3A takes the same amount of time to run as query 3B (9.68ms difference), while query 5B
 is actually $\sim$69ms faster than 5A\@.
@@ -72,8 +72,8 @@ On average, our Cassandra cluster performs all queries faster than our non-index
     (5A for Neo4J).}\label{fig:1qtycindex3n}
 \end{figure}
 
-In~\autoref{fig:1qtycindex3n}, queries 1, 3 (3A for Neo4J), and 5 (5A for Neo4J) are plotted for a Cassandra cluster,
-a Neo4J cluster without any indexes, and a Neo4J cluster with an index on \texttt{TYC1}.
+In~\autoref{fig:1qtycindex3n}, queries 1, 3 (3A for Neo4J), and 5 (5A for Neo4J) are plotted for a 3-node Cassandra
+cluster, a 3-node Neo4J cluster without any indexes, and a 3-node Neo4J cluster with an index on \texttt{TYC1}.
 All of three of these queries involve searching for some star based on the \texttt{TYC1} field.
 The \texttt{TYC1} index cannot be applied to our Cassandra cluster because this is the primary key for \textit{Stars}
 column family.
@@ -83,12 +83,13 @@ On average, the \texttt{TYC1} indexed Neo4J cluster performs about the same as o
 Cassandra performs 0.85s faster than a non-indexed Neo4J cluster.
 The average difference in time between the non-indexed Neo4J cluster and the \texttt{TYC1} indexed cluster is 0.85s.
 The inefficiencies seen in~\autoref{subsec:overallNoIndex3Nodes} for Neo4J queries 1 and 5A are reduced with the
-inclusion of an index on the filtered property.
+inclusion of an index on the filtered field.
 
 Relative to queries 1 and 5, query 3 was already fast (average of 1.27s vs. $\sim$18ms).
 After applying the index, query 3 becomes the slowest of the three, although the difference is fairly small (1.6ms).
 Query 3B is also more distributed than queries 1 and 5A (0.96ms vs. 0.06ms), suggesting that this behaviour is
 consistent.
+
 A slight performance boost may be gained for both query 1s of Neo4J if a size restriction filter were placed (i.e.
 \texttt{LIMIT}).
 For the non-indexed case, this query is of complexity $T(n) = \Theta(n)$ and could be lowered to $O(n)$ if we
@@ -112,14 +113,13 @@ Both of these queries involve searching for nearby stars and applying a brightne
 Neo4J with the \texttt{BTmag} index performs queries 4 and 5 $\sim$0.29s faster than Cassandra with the same index.
 Neo4J query 5 descends from 0.96s to 0.33ms when the \texttt{BTmag} index is applied, but there appears to be no
 significant effect for query 4A (difference of 8.31ms).
-Given that query 4A was already relatively fast compared to 5A, it follows that any changes in time should be
-minimal.
+Given that query 4A was already fast compared to 5A, it follows that any changes in time should be minimal.
 
 Cassandra with the \texttt{BTmag} index executes queries 4 and 5 with a very slight increase in time (13.0ms) compared
 to the Cassandra cluster without the index.
 Query 4A runs 24.3ms faster with the index, but query 5 runs for the same amount of time (difference of 1.76ms).
 The \texttt{BTmag} index is marginally effective in reducing the query time, but the largest optimization for
-Cassandra query 4A is reformatting the query for use with the primary key.
+Cassandra query 4 is reformatting the query for use with the primary key (from 4A to 4B).
 
 %Neo4J with the appropriate \texttt{TYC} indexes performs queries 4 and 5 $\sim$0.22s faster than Cassandra, regardless of
 %the additional \texttt{BTmag} index or not.

@@ -3,20 +3,23 @@
     % https://www.cosmos.esa.int/web/gaia/iow_20150115
     \centering{\includegraphics[scale=0.25]{images/tycho.png}}
     \caption{Heat map of the celestial sphere mapped by the Tycho-2 dataset.
-    There exist roughly 2.5 million stars here.}\label{fig:tycho}
+    There exist roughly 2.5 million stars here.
+    Right ascension varies from left to right, while declination varies from top to bottom.}\label{fig:tycho}
 \end{figure}
 
-In order to make decisions about our data model, we need to understand our data: a star catalog.
-A star catalog is a collection of stars, their positions, and other traits, enumerated by their catalog numbers.
-The Tycho-2 star catalog comes from the ESA (European Space Agency) astrometric mission Hipparcos, as well as other
-existing catalogs.
+In order to make informed decisions about our data model, we need to understand our data: a star catalog.
+A star catalog is a collection of stars, their positions, and other traits, enumerated \& identified by their catalog
+numbers.
+The bulk of the Tycho-2 star catalog comes from the ESA (European Space Agency) astrometric mission Hipparcos.
 This dataset is available at~\url{ftp://cdsarc.u-strasbg.fr/pub/cats/I/259}.
 
-Typical star catalogs hold stars as points projected onto a 2D map of space known as the celestial sphere.
-Each point is recorded as a vector ($\alpha, \delta$) in the \textit{Equatorial coordinate system}.
+Typical star catalogs hold stars as points projected onto a two dimensional map of the sky known as the celestial
+sphere.
+Each point is recorded as a point ($\alpha, \delta$) in the \textit{Equatorial coordinate system}.
 $\alpha$ represents right ascension, which is the celestial equivalent of longitude on Earth.
 $\delta$ represents declination, which is the celestial equivalent of latitude.
-~\autoref{fig:tycho} depicts a heat map of the stars inside the catalog, and is meant to illustrate how positions of stars are recorded.
+~\autoref{fig:tycho} depicts a heat map of the stars inside the catalog, and is meant to illustrate how positions of
+stars are recorded.
 
 There exist two main sections of interest here: the catalog files, and the index file.
 The catalog files hold each star (or astronomical object), their astrometric properties, and their 3-number \texttt{TYC}
@@ -31,7 +34,7 @@ Each \texttt{TYC1}, or \textit{GSC Region Number} corresponds to a specific regi
 Region here, refers to a section on the celestial sphere.
 Every GSC Region corresponds to, at most, a $3.75^\circ \times 3.75^\circ$ region of the sky.
 The running number corresponds to a star inside that region, and the component identifier indicates how many stars
-exist in that specific system (typically equal to 1).
+exist in that specific star system (typically equal to 1).
 
 Also contained are the proper motions of each star, the epoch (time) associated with the current record, the apparent
 magnitude (brightness), and errors associated with all of the former.

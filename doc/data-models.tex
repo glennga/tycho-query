@@ -1,14 +1,18 @@
 \section{Data Models}\label{sec:dataModels}
-Given the Tycho-2 catalog of stars, how can we model our data our data for efficient spatial queries?
+Given the Tycho-2 catalog of stars, how can we model our data our data for efficient spatial queries on a static
+database?
 
 \subsection{Relational Data Model}\label{subsec:relationalDataModel}
 The relational data model is the most popular data abstraction, and arguably the most natural.
-Here data is stored in tuples.
-The schema is defined before data is added, meaning that each tuple of a given table has the same number of attributes.
-If thought of as a table, the number of columns is fixed while the number of tuples is variable.
-Interaction between this model involves the use of relational algebra.
+Here data is stored in $n$-dimensional vectors known as tuples.
+The schema is defined before data is added, meaning that each tuple of a given set has the same length.
+If thought of as a table, the number of columns is fixed while the number of rows is variable.
+Interaction between this model involves the use of relational algebra (typically implemented as SQL).
 
 In terms of distributed relational DBMSs, most implementations are consistent, available, but not partition tolerant.
+This means that every read will always receive the most recent write.
+Given that our database is static, the biggest concern is partition tolerance.
+Our system may not operate with message loss across a cluster of computers (nodes).
 
 \subsection{Column Family Data Model}\label{subsec:columnFamilyDataModel}
 \begin{figure}
@@ -16,11 +20,11 @@ In terms of distributed relational DBMSs, most implementations are consistent, a
     \caption{Depiction of data model used with Cassandra.
     There exists a \textit{Stars} column family indexed by \texttt{TYC1, TYC2, TYC3}, and a \textit{Regions} column
     family indexed by \texttt{TYC1}.
-    The \textit{Regions} family has a list of \texttt{TYC} IDs of stars contained in that region.}
+    Stars exist in regions if they share the same \texttt{TYC1} number.}
     \label{fig:cassandraDataModel}
 \end{figure}
 
-The column family data model can be loosely thought of as the segmentation of a relational table into several two
+The column family data model can be very loosely thought of as the segmentation of a relational table into several two
 column tables consisting of a single attribute of the original table and a primary key based off this attribute.
 These segmented tables can then be grouped into a column family, which represents a group of columns indexed by the
 same primary key.
@@ -35,13 +39,12 @@ Cons here include restrictive queries, as columns can only be accessed using the
 Cassandra itself is available and partition tolerant, but not consistent.
 Data in a Cassandra cluster is hash partitioned by the primary key with the additional option of being replicated
 across the cluster.
-Without Cassandra's querying language CQL, queries with column families would have been restricted to only using the
-primary key.
-Using CQL queries can use non-primary key columns, but it is less efficient.
+Cassandra's querying language CQL allows for queries without the primary key, but at the cost of performance.
 
 The data model being implemented with Cassandra involves two column families: \textit{Regions} and \textit{Stars}.
 The \textit{Stars} family has six columns:
 \begin{multicols}{3}
+    \noindent
     \begin{itemize}
         \item[] \texttt{TYC1}
         \item[] \texttt{TYC2}
@@ -51,29 +54,29 @@ The \textit{Stars} family has six columns:
         \item[] \texttt{BTmag}
     \end{itemize}
 \end{multicols}
-where the first three columns represent the star's ID, \texttt{RAmdeg, DEmdeg} represent the star's position, and
+where \texttt{TYC1, TYC2, TYC3} represent the star's ID, \texttt{RAmdeg, DEmdeg} represent the star's position, and
 \texttt{BTmag} represents the magnitude of the star.
 This is depicted in~\autoref{fig:cassandraDataModel}.
 The primary key for this family is the GSC region \texttt{TYC1}, with \texttt{TYC2, TYC3} as secondary clustering
 keys.
 Efficient queries for stars should involve the primary key \texttt{TYC1}.
 
-The \textit{Regions} family has six columns as well:
+The \textit{Regions} family has five columns:
 \begin{multicols}{3}
+    \noindent
     \begin{itemize}
         \item[] \texttt{TYC1}
         \item[] \texttt{RAmin}
         \item[] \texttt{RAmax}
         \item[] \texttt{DEmin}
         \item[] \texttt{DEmax}
-        \item[] \texttt{InRegion}
     \end{itemize}
 \end{multicols}
-where \texttt{TYC1} represents the region ID, (\texttt{RAmin, RAmax}) represent the right ascension limits,
-(\texttt{DEmin, DEmax}) represent the declination limits, and \texttt{InRegion} is a list of star IDs contained within
-that region.
-Each region's primary key is the \textit{TYC1} region ID, and it follows that efficient region queries will use only
-the primary key.
+where \texttt{TYC1} represents the region ID, (\texttt{RAmin, RAmax}) represent the right ascension limits, and
+(\texttt{DEmin, DEmax}) represent the declination limits.
+Star exist in the same region if they share the same \texttt{TYC1} region ID\@, which is also the primary key for
+the \textit{Region} family.
+Efficient region queries will use only the \texttt{TYC1} primary key.
 
 %To query for all attributes of stars within a region, we first query for the \texttt{InRegion} column in the
 %\textit{Region} family given the \texttt{TYC1}.
@@ -90,19 +93,19 @@ the primary key.
 Relative to the relational data model, the graph data model focuses on the relationship between various tuples.
 Here data is stored in nodes as attributes, and relationships are stored as edges between nodes.
 Data is accessed by searching for nodes or edges, and traversing the graph.
-Graph models shine in relationship querying and denormalization as opposed to a relational data model.
+Compared to the relational data model, graph data models shine in relationship querying and denormalization.
 Compared to the column family where data can easily be partitioned across nodes, a graph data model does not allow
 for the same amount of parallelism.
 
 \textit{Neo4J} is the graph database that is being tested here, and is also a form of a distributed DBMS\@.
-The Neo4J setup that was tested here is available and consistent (like typical RDBMS), but not partition tolerant.
-Because data in a Neo4J graph cannot be partitioned like Cassandra, every node is a full replica.
+The Neo4J setup that was tested here is available and consistent, but not partition tolerant (like a typical
+distributed RDBMS).
+Because data in a Neo4J graph cannot be partitioned like Cassandra, every node in a cluster is a full replica.
 
 The data model being implemented here involves two types of nodes: \textit{Region} and \textit{Star} nodes.
 A \textit{Star} node has the same attributes as the columns in the Cassandra \textit{Stars} family.
-\textit{Regions} have all attributes in the columns of the \textit{Regions} family except for the
-\texttt{InRegion} column.
-Instead, a \texttt{WITHIN} relationship is established between all \textit{Star} nodes that exist in Region.
+\textit{Regions} have all attributes in the columns of the \textit{Regions} family.
+A \texttt{WITHIN} relationship is established between all \textit{Star} nodes that exist in a region.
 
 %To query for all attributes for a star within a region, we first search for the \textit{Region} node that matches
 %some \texttt{TYC1} ID\@.

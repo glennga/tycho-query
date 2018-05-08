@@ -8,43 +8,42 @@ To normalize the role of the cache (both OS and DBMS), each query set of the lis
 45 times.
 The last 15 runs were sampled and represents the data in~\autoref{sec:results}.
 The repository that holds all code and data associated with this project can be found at:
-
 \url{https://github.com/glennga/tycho-query}
 
 \subsection{Queries}\label{subsec:queries}
 Queries represent read operations on some DBMS\@.
-Write operations were not tested here, as stars are not added to this dataset.
+Write operations were not tested here, as stars have not added to this dataset in years.
 For simplicity, a star is defined as \textit{near} to another star if they share the same region.
 A star is \textit{naked-eye visible} if its \texttt{BTmag} field (apparent magnitude) is below 6.0.
 
 The following queries are to be examined:
 \begin{enumerate}
-    \item What are the characteristics of some star $s$?
+    \item What are the characteristics of some star $S$?
     \item Which stars are near some Equatorial position $(\alpha, \delta)$?
-    \item Which stars are near some star $s$, and what are their characteristics?
+    \item Which stars are near some star $S$, and what are their characteristics?
     \item Which stars are near some Equatorial position $(\alpha, \delta)$, and are naked-eye visible?
-    \item Which stars are near some star $s$, and are naked-eye visible?
+    \item Which stars are near some star $S$, and are naked-eye visible?
 \end{enumerate}
 
-Query (1) is a singular element search across the entire database.
-Query (2) involves searching for some region that contains our point, and utilizing the data associated with the
+Query 1 is a singular element search across the entire database.
+Query 2 involves searching for some region that contains our point, and utilizing the data associated with the
 region to search for stars.
 This query can be approached two ways: computing the region ID given our point as application logic and searching with
 this ID, or by searching with the bounds fields associated with each region.
-Query (3) involves searching for all stars that share the same \texttt{TYC1} field.
-Neo4J has the additional option of traversing to the associated \textit{Region} node and walking each edge of the
-region.
-Queries (4) and (5) are similar to (2) and (3) with an additional brightness filter.
+Query 3 involves searching for all stars that share the same \texttt{TYC1} field.
+Neo4J has the additional option of searching for the associated \textit{Region} node and walking each edge to the
+corresponding \textit{Star} node.
+Queries 4 and 5 are similar to 2 and 3 with an additional brightness filter.
 
 Each general query was translated into 22 different queries for specific stars or locations.
-When referencing the time to execute query 1 or 2, we mean the time to execute any of one the specific queries for
-query set 1 or 2 on average.
+When referencing the time to execute query 1 or 2, it is implied that this is the time to execute any of one the
+specific queries for query set 1 or 2 on average.
 
 \subsection{Cassandra}\label{subsec:cassandra}
 The multi-node Cassandra clusters were configured with a \textit{Simple Snitch}, a replication factor = 3, and
 \texttt{num\textunderscore tokens} = 256.
 No other changes were made to the default configuration.
-A snitch informs Cassandra about network topology for request efficiency, and the current configuration
+A snitch informs Cassandra about network topology for request efficiency, and the \textit{Simple Snitch}
 is recommended for single-datacenter deployments.
 Replication factor describes how many copies of the data exist, and \texttt{num\textunderscore tokens} determines
 how much of the data each node gets.
@@ -53,7 +52,7 @@ get the same amount of data.
 
 All queries were operated serially and timed within the same session.
 Cassandra does not allow subqueries (unlike SQL), so the time to execute the first query, feed this
-into the result of the second, and execute this query was recorded.
+into the result of the second, and execute this query was recorded as a single run.
 
 For the first query in~\autoref{subsec:queries}, we are given the exact \texttt{TYC1-TYC2-TYC3} ID and are told to
 search for all attributes associated with this star.
@@ -78,18 +77,18 @@ A question of interest here is if this exchange for space results in a noticeabl
 
 Cassandra's third query takes advantage of our definition of near.
 Here, we can just search for all stars sharing the same \texttt{TYC1}.
-The fourth and fifth queries involve applying the naked-eye visibility filter to queries 2 and 3.
+Queries 4 and 5 involve applying the naked-eye visibility filter to queries 2 and 3.
 Another question of interest is how a \texttt{BTmag} index affects the speed of our query.
 
 \subsection{Neo4J}\label{subsec:neo4j}
 The multi-node Neo4J clusters were configured as \textit{Causal}, and all queries were performed on
 the leader node.
 No other changes were made to the default configuration.
-All queries are to be executed serially, operating within the same session.
+All queries were executed serially, operating within the same session.
 
 The first query in~\autoref{subsec:queries} is a search across the entire node list for a singular element given the
 \texttt{TYC} ID\@.
-This is to be tested with and without an index on \texttt{TYC1}, to determine how large the speedup is.
+This was tested with and without an index on \texttt{TYC1}, to determine how large the speedup is.
 
 For the second query, we are given some position instead of the star ID itself.
 The first approach, similar to Cassandra's 2A query, starts by searching for regions such
@@ -111,7 +110,7 @@ The second approach (Query 3B) involves searching modeling the query in terms of
 First, we search some star given the \texttt{TYC} ID\@.
 Next, we traverse the connected \texttt{WITHIN} edge to find our region.
 Finally, we traverse each \texttt{WITHIN} edge connected to our region and return the properties of each star.
-Again, this is to be tested with and without a \texttt{TYC1} index.
+Again, this was tested with and without a \texttt{TYC1} index.
 
-The fourth and fifth queries are variants of queries 2 and 3 with the naked-eye visibility filter.
+Queries 4 and 5 are variants of queries 2 and 3 with the naked-eye visibility filter.
 Similar to the Cassandra queries, a question of interest is how a \texttt{BTmag} index affects the query time.
