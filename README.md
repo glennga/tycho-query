@@ -40,8 +40,8 @@ Each general query was translated into 22 different queries for specific stars o
 
 # Results
 <img class="ui image" src="doc/images/qall-3node-none.png">
-_Caption: Running times of different queries for a 3-node Neo4J cluster and a 3-node Cassandra cluster. Each point represents the average of 15 runs. The blue bars represent query 1, the orange represent queries 2A and 2B, the green represents queries 3 (Cassandra), 3A and 3B (Neo4J), the red represents queries 4A and 4B, and the purple represents queries 5 (Cassandra), 5A and 5B (Neo4j)._
 
+_Caption: Running times of different queries for a 3-node Neo4J cluster and a 3-node Cassandra cluster. Each point represents the average of 15 runs. The blue bars represent query 1, the orange represent queries 2A and 2B, the green represents queries 3 (Cassandra), 3A and 3B (Neo4J), the red represents queries 4A and 4B, and the purple represents queries 5 (Cassandra), 5A and 5B (Neo4j)._
 
 Our results show that Cassandra runs faster when Neo4J is not indexed, but Neo4J is able to run just as efficiently (in some cases, more) when the correct indexes are applied. Cassandra queries benefit from taking the time to determine the primary key before asking Cassandra (time-space tradeoff), instead of performing an exhaustive search on Cassandra itself. Neo4J does not experiment this same performance boost. Finally, Cassandra appears to perform the same under a change in cluster size while Neo4J does not. For consistent performance, Cassandra should be selected. For a more natural abstraction with a higher upper bound on performance, Neo4J should be selected.
 
