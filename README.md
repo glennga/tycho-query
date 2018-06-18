@@ -1,3 +1,5 @@
+<img class="ui image" src="doc/images/skymap.png">
+
 # Abstract
 Asking "What stars are near S?" is a problem that may involve iterating through millions, if not billions of stars. The time to answer similar questions using the Tycho-2 dataset with the  distributed column family database Apache Cassandra, was benchmkared against the distributed graph database Neo4J using the same dataset. Overall, Cassandra's query times are more tightly distributed than Neo4J, but Neo4J is able to process queries faster if the correct indexes are applied.
 
@@ -30,9 +32,15 @@ The following queries are to be examined:
 2. Which stars are near some Equatorial position (alpha, delta)?
 3. Which stars are near some star S, and what are their characteristics?
 4. Which stars are near some Equatorial position (alpha, delta), and are naked-eye visible?
-5. Which stars are near some star S, and are naked-eye
-visible?
+5. Which stars are near some star S, and are naked-eye visible?
+
+Query 1 is a singular element search across the entire database. Query 2 involves searching for some region that contains our point, and utilizing the data associated with the region to search for stars. This query can be approached two ways: computing the region ID given our point as application logic and searching with this ID, or by searching with the bounds fields associated with each region. Query 3 involves searching for all stars that share the same TYC1 field. Neo4J has the additional option of searching for the associated Region node and walking each edge to the corresponding Star node. Queries 4 and 5 are similar to 2 and 3 with an additional brightness filter.
+
+Each general query was translated into 22 different queries for specific stars or locations. When referencing the time to execute query 1 or 2, it is implied that this is the time to execute any of one the specific queries for query set 1 or 2 on average.
 
 # Results
+<img class="ui image" src="doc/images/qall-3node-none.png">
+
 Our results show that Cassandra runs faster when Neo4J is not indexed, but Neo4J is able to run just as efficiently (in some cases, more) when the correct indexes are applied. Cassandra queries benefit from taking the time to determine the primary key before asking Cassandra (time-space tradeoff), instead of performing an exhaustive search on Cassandra itself. Neo4J does not experiment this same performance boost. Finally, Cassandra appears to perform the same under a change in cluster size while Neo4J does not. For consistent performance, Cassandra should be selected. For a more natural abstraction with a higher upper bound on performance, Neo4J should be selected.
 
+View the entire paper [here](https://github.com/glennga/tycho-query/blob/master/doc/paper.pdf).
